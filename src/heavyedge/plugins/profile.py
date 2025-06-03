@@ -37,7 +37,7 @@ class PrepCommand(Command):
             ),
         )
         prep.add_config_argument(
-            "--std",
+            "--sigma",
             type=float,
             help="Standard deviation of Gaussian kernel.",
         )
@@ -71,7 +71,7 @@ class PrepCommand(Command):
 
         with ProfileData(args.output, "w").create(M, args.res, args.name) as out:
             # write the first valid profile
-            Y, L = preprocess(profile, args.std, args.std_thres)
+            Y, L = preprocess(profile, args.sigma, args.std_thres)
             out.write_profiles(Y.reshape(1, -1), [L], [name])
 
             for profile, name in raw_profiles:
@@ -79,7 +79,7 @@ class PrepCommand(Command):
                     continue
                 if np.any(np.isnan(profile)):
                     continue
-                Y, L = preprocess(profile, args.std, args.std_thres)
+                Y, L = preprocess(profile, args.sigma, args.std_thres)
                 out.write_profiles(Y.reshape(1, -1), [L], [name])
 
         self.logger.info(f"Preprocessed: {out.path}")
