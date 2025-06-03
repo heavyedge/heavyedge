@@ -169,6 +169,6 @@ class MeanCommand(Command):
         with ProfileData(args.output, "w").create(M, res, name) as out:
             L = len(pmean)
             pmean = np.pad(pmean, (0, M - L), constant_values=np.nan)
-            out.write_profile(pmean.reshape(1, -1), [L], [name])
+            out.write_profiles(pmean.reshape(1, -1), [L], [name])
 
         self.logger.info(f"Averaged: {out.path}")
