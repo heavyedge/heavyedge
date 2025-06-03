@@ -2,6 +2,7 @@
 
 __all__ = [
     "preprocess",
+    "mean",
 ]
 
-from .profile import preprocess
+from .profile import mean, preprocess
