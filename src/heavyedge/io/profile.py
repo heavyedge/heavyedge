@@ -78,6 +78,15 @@ class ProfileData:
         )
         return self
 
+    def name(self):
+        """Unique name of the dataset.
+
+        Returns
+        -------
+        str
+        """
+        return self._file.attrs["name"]
+
     def resolution(self):
         """Spatial resolution of the profile data.
 

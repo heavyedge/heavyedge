@@ -2,6 +2,8 @@
 
 __all__ = [
     "preprocess",
+    "outlier",
+    "mean",
 ]
 
-from .profile import preprocess
+from .profile import mean, outlier, preprocess

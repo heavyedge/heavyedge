@@ -5,6 +5,10 @@ src/heavyedge/samples/*
 !src/heavyedge/samples/Type2
 !src/heavyedge/samples/Type3
 
+# Cython
+src/**/*.c
+src/**/*.html
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

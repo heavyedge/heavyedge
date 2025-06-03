@@ -3,11 +3,13 @@
 __all__ = [
     "get_sample_path",
     "RawProfileCsvs",
+    "ProfileData",
 ]
 
 import logging
 
 from .io import (
+    ProfileData,
     RawProfileCsvs,
 )
 from .samples import get_sample_path

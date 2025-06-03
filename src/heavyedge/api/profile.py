@@ -5,8 +5,12 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
 from scipy.stats import linregress
 
+from ..wasserstein import wmean
+
 __all__ = [
     "preprocess",
+    "outlier",
+    "mean",
 ]
 
 
@@ -75,3 +79,84 @@ def preprocess(Y, sigma, std_thres):
 
     Y = Y - Y[cp]
     return Y, cp
+
+
+def outlier(profiles, thres=3.5):
+    """Detect outlier profiles.
+
+    Parameters
+    ----------
+    profiles : iterable of array
+        Profile data, with last point being the contact point.
+    thres : scalar, default=3.5
+        Z-score threshold for outlier detection.
+
+    Returns
+    -------
+    is_outlier : array of bool
+        Boolean array where True indicates outlier.
+
+    Notes
+    -----
+    Outliers are detected by applying modified Z-score method [1]_ on cross-sectional
+    areas.
+
+    References
+    ----------
+    .. [1] Boris Iglewicz and David C Hoaglin.
+       Volume 16: how to detect and handle outliers. Quality Press, 1993.
+
+    Examples
+    --------
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> from heavyedge.api import outlier
+    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
+    ...     profiles = list(data.profiles())
+    ...     is_outlier = outlier(profiles, 1.5)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... for profile, skip in zip(profiles, is_outlier):
+    ...     if skip:
+    ...         plt.plot(profile, color="red")
+    ...     else:
+    ...         plt.plot(profile, alpha=0.2, color="gray")
+    """
+    x = np.array([np.sum(p) for p in profiles])
+    med = np.median(x)
+    mad = np.median(np.abs(x - med))
+    mod_z = 0.6745 * (x - med) / mad
+    return np.abs(mod_z) > thres
+
+
+def mean(profiles, grid_num):
+    """Fréchet mean of profiles using Wasserstein distance.
+
+    Parameters
+    ----------
+    profiles : iterable of array
+        Profile data, with last point being the contact point.
+    grid_num : int
+        Number of sample points in [0, 1] to construct regression results.
+
+    Returns
+    -------
+    ndarray
+        Averaged *Y*.
+
+    Examples
+    --------
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> from heavyedge.api import mean
+    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
+    ...     profiles = list(data.profiles())
+    ...     mean = mean(profiles, 1000)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... for profile in profiles:
+    ...     plt.plot(profile, alpha=0.2, color="gray")
+    ... plt.plot(mean)
+    """
+    areas, pdfs = [], []
+    for prof in profiles:
+        A = np.sum(prof)
+        areas.append(A)
+        pdfs.append(prof / A)
+    return wmean(pdfs, grid_num) * np.mean(areas)
