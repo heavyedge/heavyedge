@@ -9,7 +9,10 @@ Provides:
 
 ## Documentation
 
-Package is documented with [Sphinx](https://pypi.org/project/Sphinx/).
+The manual can be found online:
+
+> https://heavyedge.readthedocs.io
+
 If you want to build the document yourself, get the source code and install with `[doc]` dependency.
 Then, go to `doc` directory and build the document:
 
