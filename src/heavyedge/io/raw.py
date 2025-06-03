@@ -39,7 +39,7 @@ class RawProfileBase(abc.ABC):
         """
 
     def all_profiles(self):
-        """Return all profiles as 2-D array.
+        """Return all profiles as an 2-D array.
 
         Returns
         -------
@@ -58,26 +58,27 @@ class RawProfileBase(abc.ABC):
 
 
 class RawProfileCsvs(RawProfileBase):
-    """Read raw profile data from a directory containing csv files.
+    """Read raw profile data from a directory containing CSV files.
 
-    The raw profile data is stored in a directory with the following structure:
+    Directory structure:
 
     .. code-block::
 
-        rawdata
+        rawdata/
         ├── profile1.csv
         ├── profile2.csv
         └── ...
 
-    Here, `rawdata` is the data path, which should be passed to the *dirpath* argument.
-    Each CSV file contains height data for a single 1-dimensional profile, written in
-    one column with multiple rows. Each row represents a spatial data point. The file
-    must have no header.
-
     Parameters
     ----------
     path : pathlib.Path
-        Path to directory containing raw data.
+        Path to the directory containing the raw CSV files.
+
+    Notes
+    -----
+    - Each CSV file must contain a single column of numeric values (no header).
+    - The order of profiles is determined by the sorted filenames.
+    - The profile name is derived from the filename stem.
 
     Examples
     --------
