@@ -1,11 +1,11 @@
 # HeavyEdge
 
-Basic package for heavy edge analysis.
+Basic package for heavy edge coating profile analysis.
 
 Provides:
 
-- Read and process edge profile data for analysis.
-- Utility commands for data management.
+- Profile preprocessing and averaging.
+- File I/O and command line API.
 
 ## Documentation
 
@@ -25,7 +25,7 @@ Document will be generated in `build/html` directory. Open `index.html` to see t
 
 ### Installation
 
-For development features, you must install the package by `pip install -e .[doc]`.
+For development features, you must install the package by `pip install -e .[dev]`.
 
 ### Testing
 
