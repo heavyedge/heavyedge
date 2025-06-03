@@ -82,9 +82,9 @@ class RawProfileCsvs(RawProfileBase):
     Examples
     --------
     >>> from heavyedge import get_sample_path, RawProfileCsvs
-    >>> import matplotlib.pyplot as plt
     >>> profiles = RawProfileCsvs(get_sample_path("Type3")).profiles()
-    >>> for Y in profiles:  # doctest: +SKIP
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... for Y in profiles:
     ...     plt.plot(Y)
     """
 
