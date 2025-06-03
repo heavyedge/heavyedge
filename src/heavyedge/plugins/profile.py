@@ -172,3 +172,37 @@ class MeanCommand(Command):
             out.write_profiles(pmean.reshape(1, -1), [L], [name])
 
         self.logger.info(f"Averaged: {out.path}")
+
+
+@register_command("merge", "Merge profile data")
+class MergeCommand(Command):
+    def add_parser(self, main_parser):
+        merge = main_parser.add_parser(
+            self.name,
+            description="Merge profile data and save as hdf5 file.",
+            epilog="The resulting hdf5 file is in 'ProfileData' structure.",
+        )
+        merge.add_argument(
+            "profiles",
+            nargs="+",
+            type=pathlib.Path,
+            help="Paths to preprocessed profile data in 'ProfileData' structure.",
+        )
+        merge.add_argument("--name", help="Name to label output dataset.")
+        merge.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
+
+    def run(self, args):
+        from heavyedge.io import ProfileData
+
+        with ProfileData(args.profiles[0]) as data:
+            _, M = data.shape()
+            res = data.resolution()
+
+        with ProfileData(args.output, "w").create(M, res, args.name) as out:
+            for p in args.profiles:
+                with ProfileData(p) as data:
+                    out.write_profiles(
+                        data._file["profiles"][:],
+                        data._file["len"][:],
+                        data._file["names"][:],
+                    )
