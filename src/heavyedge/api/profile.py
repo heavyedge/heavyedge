@@ -5,8 +5,11 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
 from scipy.stats import linregress
 
+from ..wasserstein import wmean
+
 __all__ = [
     "preprocess",
+    "mean",
 ]
 
 
@@ -75,3 +78,38 @@ def preprocess(Y, sigma, std_thres):
 
     Y = Y - Y[cp]
     return Y, cp
+
+
+def mean(Y, grid_num):
+    """Fréchet mean of profiles using Wasserstein distance.
+
+    Parameters
+    ----------
+    Y : iterable of array
+        Profile data, with last point being the contact point.
+    grid_num : int
+        Number of sample points in [0, 1] to construct regression results.
+
+    Returns
+    -------
+    ndarray
+        Averaged *Y*.
+
+    Examples
+    --------
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> from heavyedge.api import mean
+    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
+    ...     Y = list(data.profiles())
+    ...     mean = mean(Y, 1000)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... for profile in Y:
+    ...     plt.plot(profile, alpha=0.2, color="gray")
+    ... plt.plot(mean)
+    """
+    areas, pdfs = [], []
+    for prof in Y:
+        A = np.sum(prof)
+        areas.append(A)
+        pdfs.append(prof / A)
+    return wmean(pdfs, grid_num) * np.mean(areas)
