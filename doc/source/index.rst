@@ -64,6 +64,12 @@ Data file API
 .. automodule:: heavyedge.io
     :members:
 
+Low-level API
+-------------
+
+.. automodule:: heavyedge.wasserstein
+    :members:
+
 Plugin API
 ==========
 
