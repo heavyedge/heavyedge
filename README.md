@@ -1,6 +1,6 @@
 # HeavyEdge
 
-Central package for heavy edge analysis.
+Basic package for heavy edge analysis.
 
 Provides:
 

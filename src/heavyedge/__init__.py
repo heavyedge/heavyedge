@@ -2,6 +2,10 @@
 
 __all__ = [
     "get_sample_path",
+    "RawProfileCsvs",
 ]
 
+from .io import (
+    RawProfileCsvs,
+)
 from .samples import get_sample_path

@@ -25,11 +25,17 @@ test = [
     "pytest",
     "tqdm",
 ]
+doc = [
+    "sphinx",
+    "numpydoc",
+    "pydata_sphinx_theme",
+    "matplotlib",
+]
 dev = [
     "flake8",
     "black",
     "isort",
-    "heavyedge[test]"
+    "heavyedge[test,doc]"
 ]
 
 [tool.setuptools.packages.find]
