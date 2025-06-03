@@ -102,5 +102,6 @@ def main():
         try:
             command.run(args)
         except Exception:
-            logger.exception(f"Got exception while running '{" ".join(sys.argv)}'.")
+            input_command = " ".join(sys.argv)
+            logger.exception(f"Got exception while running '{input_command}'.")
             sys.exit(1)
