@@ -4,6 +4,8 @@ __all__ = [
     "preprocess",
     "outlier",
     "mean",
+    "find_peak",
 ]
 
+from .landmarks import find_peak
 from .profile import mean, outlier, preprocess
