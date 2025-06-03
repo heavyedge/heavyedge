@@ -9,6 +9,7 @@ from ..wasserstein import wmean
 
 __all__ = [
     "preprocess",
+    "outlier",
     "mean",
 ]
 
@@ -80,12 +81,58 @@ def preprocess(Y, sigma, std_thres):
     return Y, cp
 
 
-def mean(Y, grid_num):
+def outlier(profiles, thres=3.5):
+    """Detect outlier profiles.
+
+    Parameters
+    ----------
+    profiles : iterable of array
+        Profile data, with last point being the contact point.
+    thres : scalar, default=3.5
+        Z-score threshold for outlier detection.
+
+    Returns
+    -------
+    is_outlier : array of bool
+        Boolean array where True indicates outlier.
+
+    Notes
+    -----
+    Outliers are detected by applying modified Z-score method [1]_ on cross-sectional
+    areas.
+
+    References
+    ----------
+    .. [1] Boris Iglewicz and David C Hoaglin.
+       Volume 16: how to detect and handle outliers. Quality Press, 1993.
+
+    Examples
+    --------
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> from heavyedge.api import outlier
+    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
+    ...     profiles = list(data.profiles())
+    ...     outlier = outlier(profiles, 1.5)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... for profile, is_outlier in zip(profiles, outlier):
+    ...     if is_outlier:
+    ...         plt.plot(profile, color="red")
+    ...     else:
+    ...         plt.plot(profile, alpha=0.2, color="gray")
+    """
+    x = np.array([np.sum(p) for p in profiles])
+    med = np.median(x)
+    mad = np.median(np.abs(x - med))
+    mod_z = 0.6745 * (x - med) / mad
+    return np.abs(mod_z) > thres
+
+
+def mean(profiles, grid_num):
     """Fréchet mean of profiles using Wasserstein distance.
 
     Parameters
     ----------
-    Y : iterable of array
+    profiles : iterable of array
         Profile data, with last point being the contact point.
     grid_num : int
         Number of sample points in [0, 1] to construct regression results.
@@ -100,15 +147,15 @@ def mean(Y, grid_num):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import mean
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
-    ...     Y = list(data.profiles())
-    ...     mean = mean(Y, 1000)
+    ...     profiles = list(data.profiles())
+    ...     mean = mean(profiles, 1000)
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
-    ... for profile in Y:
+    ... for profile in profiles:
     ...     plt.plot(profile, alpha=0.2, color="gray")
     ... plt.plot(mean)
     """
     areas, pdfs = [], []
-    for prof in Y:
+    for prof in profiles:
         A = np.sum(prof)
         areas.append(A)
         pdfs.append(prof / A)
