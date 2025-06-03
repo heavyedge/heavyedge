@@ -3,7 +3,7 @@ import subprocess
 
 
 def test_process_commands(tmp_rawdata_type2_path, tmp_path):
-    processed_path = tmp_path / "ProcessedData.h5"
+    processed_path = tmp_path / "ProcessedProfiles.h5"
     subprocess.run(
         [
             "heavyedge",
@@ -22,7 +22,7 @@ def test_process_commands(tmp_rawdata_type2_path, tmp_path):
     )
     assert os.path.exists(processed_path)
 
-    filtered_path = tmp_path / "FilteredData.h5"
+    filtered_path = tmp_path / "FilteredProfiles.h5"
     subprocess.run(
         [
             "heavyedge",
@@ -38,7 +38,7 @@ def test_process_commands(tmp_rawdata_type2_path, tmp_path):
     )
     assert os.path.exists(filtered_path)
 
-    mean_path = tmp_path / "MeanData.h5"
+    mean_path = tmp_path / "MeanProfile.h5"
     subprocess.run(
         [
             "heavyedge",
@@ -53,3 +53,18 @@ def test_process_commands(tmp_rawdata_type2_path, tmp_path):
         check=True,
     )
     assert os.path.exists(mean_path)
+
+    merged_path = tmp_path / "MergedProfiles.h5"
+    subprocess.run(
+        [
+            "heavyedge",
+            "merge",
+            processed_path,
+            processed_path,
+            "-o",
+            merged_path,
+        ],
+        capture_output=True,
+        check=True,
+    )
+    assert os.path.exists(merged_path)
