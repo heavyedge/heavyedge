@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Central package for heavy edge coating profile analysis"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {file = "LICENSE"}
 dependencies = [
     "numpy",
