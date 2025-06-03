@@ -2,16 +2,15 @@
 
 import numpy as np
 from scipy.ndimage import gaussian_filter1d
-from scipy.signal import find_peaks, peak_prominences
+from scipy.signal import find_peaks
 
 __all__ = [
-    "find_peak",
-    "find_peak_trough",
+    "landmarks_type2",
 ]
 
 
-def find_peak(Y, sigma):
-    """Find heavy edge peak.
+def landmarks_type2(Y, sigma):
+    """Find landmarks for heavy edge profile without trough.
 
     Parameters
     ----------
@@ -23,59 +22,33 @@ def find_peak(Y, sigma):
 
     Returns
     -------
-    peak : int
-        Index of heavy edge peak.
+    landmarks : (3,) array of int
+        Indices of landmarks.
 
     Examples
     --------
     >>> from heavyedge import get_sample_path, ProfileData
-    >>> from heavyedge.api import find_peak
+    >>> from heavyedge.api import landmarks_type2
     >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
     ...     Y = next(data.profiles())
-    >>> peak = find_peak(Y, 32)
+    >>> lm = landmarks_type2(Y, 32)
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... plt.plot(Y)
-    ... plt.plot(peak, Y[peak], "o")
+    ... plt.plot(lm, Y[lm], "o")
     """
-    peaks, _ = find_peaks(gaussian_filter1d(Y, sigma))
-    return peaks[-1]
+    cp = len(Y) - 1
 
-
-def find_peak_trough(Y, sigma):
-    """Find heavy edge peak and trough.
-
-    Parameters
-    ----------
-    Y : 1-D array
-        1-dimensional heavy edge profile data with trough.
-        The last point must be the contact point.
-    sigma : scalar
-        Standard deviation of Gaussian filter for smoothing.
-
-    Returns
-    -------
-    peak, trough : int
-        Index of heavy edge peak and trough.
-
-    Examples
-    --------
-    >>> from heavyedge import get_sample_path, ProfileData
-    >>> from heavyedge.api import find_peak_trough
-    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
-    ...     Y = next(data.profiles())
-    >>> peak, trough = find_peak_trough(Y, 32)
-    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
-    ... plt.plot(Y)
-    ... plt.plot([peak, trough], Y[[peak, trough]], "o")
-    """
     Y_smooth = gaussian_filter1d(Y, sigma)
     peaks, _ = find_peaks(Y_smooth)
     peak = peaks[-1]
 
-    troughs, _ = find_peaks(-Y_smooth)
-    troughs = troughs[troughs < peak]
+    Y_ = Y_smooth[:peak]
+    pts = np.column_stack([np.arange(len(Y_)), Y_])
+    x, y = pts - pts[0], pts[-1] - pts[0]
+    dists = x[..., 0] * y[..., 1] - x[..., 1] * y[..., 0]
+    slope = np.diff(dists)
+    (extrema,) = np.nonzero(np.diff(np.sign(slope)))
+    K_pos = extrema[slope[extrema] > 0]
+    knee = K_pos[np.argmax(np.abs(dists[K_pos]))]
 
-    prominences = peak_prominences(-Y_smooth, troughs)[0]
-    most_prominent_idx = np.argmax(prominences)
-    trough = troughs[most_prominent_idx]
-    return peak, trough
+    return np.array([cp, peak, knee])
