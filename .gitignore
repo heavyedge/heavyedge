@@ -1,3 +1,10 @@
+src/heavyedge/samples/*
+!src/heavyedge/samples/*.py
+!src/heavyedge/samples/config*.yml
+!src/heavyedge/samples/Type1
+!src/heavyedge/samples/Type2
+!src/heavyedge/samples/Type3
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

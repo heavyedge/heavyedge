@@ -10,10 +10,13 @@ authors = [
 ]
 description = "Central package for heavy edge coating profile analysis"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {file = "LICENSE"}
 dependencies = [
     "numpy",
+    "scipy",
+    "h5py",
+    "PyYAML",
 ]
 
 [project.urls]
@@ -51,3 +54,12 @@ doctest_optionflags = [
     "ELLIPSIS",
 ]
 addopts = "--ignore=doc --doctest-modules --import-mode=importlib"
+
+[project.scripts]
+heavyedge = "heavyedge:main"
+
+[project.entry-points."heavyedge.rawdata"]
+csvs = "heavyedge:io.RawProfileCsvs"
+
+[project.entry-points."heavyedge.commands"]
+"Profile processing" = "heavyedge.plugins.profile"
