@@ -1,7 +1,8 @@
-"""Raw data files."""
+"""Raw profile data files."""
 
 import abc
 import csv
+from pathlib import Path
 
 import numpy as np
 
@@ -18,7 +19,7 @@ class RawProfileBase(abc.ABC):
     """
 
     def __init__(self, path):
-        self.path = path.expanduser()
+        self.path = Path(path).expanduser()
 
     @abc.abstractmethod
     def count_profiles(self):
@@ -48,7 +49,7 @@ class RawProfileBase(abc.ABC):
         return np.array([p for p in self.profiles()])
 
     @abc.abstractmethod
-    def names(self):
+    def profile_names(self):
         """Yield profile names.
 
         Yields
@@ -71,7 +72,7 @@ class RawProfileCsvs(RawProfileBase):
 
     Parameters
     ----------
-    path : pathlib.Path
+    path : pathlike
         Path to the directory containing the raw CSV files.
 
     Notes
@@ -102,6 +103,6 @@ class RawProfileCsvs(RawProfileBase):
                 prof = np.array([float(row[0]) for row in reader])
             yield prof
 
-    def names(self):
+    def profile_names(self):
         for f in self._files():
             yield str(f.stem)
