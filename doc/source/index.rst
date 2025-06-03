@@ -9,6 +9,21 @@ HeavyEdge documentation
 
 Basic package to analyze coating profile data with "heavy edge".
 
+Module reference
+================
+
+.. module:: heavyedge
+
+This section provides reference for :mod:`heavyedge` Python module.
+
+.. _api:
+
+Runtime API
+-----------
+
+.. automodule:: heavyedge.api
+    :members:
+
 .. _io:
 
 Data file API

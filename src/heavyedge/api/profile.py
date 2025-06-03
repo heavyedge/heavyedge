@@ -33,7 +33,7 @@ def preprocess(Y, sigma, std_thres):
     -----
     Profiles undergo the following steps:
 
-    1. Profile direction is set so that contact point is on the right hand side.
+    1. Profile direction is set so that the contact point is on the right hand side.
     2. Contact point is detected, and set to have zero height.
 
     Examples
