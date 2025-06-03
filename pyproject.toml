@@ -25,11 +25,14 @@ test = [
     "pytest",
     "tqdm",
 ]
+doc = [
+    "matplotlib",
+]
 dev = [
     "flake8",
     "black",
     "isort",
-    "heavyedge[test]"
+    "heavyedge[test,doc]"
 ]
 
 [tool.setuptools.packages.find]
