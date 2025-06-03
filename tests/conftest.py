@@ -137,7 +137,7 @@ class RawDataFactory:
 
     def mkrawfile(self, rawdir, filename, data):
         path = rawdir / filename
-        with open(path, "w") as f:
+        with open(path, "w", newline='') as f:
             writer = csv.writer(f)
             for y in data:
                 writer.writerow([y])
