@@ -5,7 +5,8 @@ __all__ = [
     "outlier",
     "mean",
     "landmarks_type2",
+    "landmarks_type3",
 ]
 
-from .landmarks import landmarks_type2
+from .landmarks import landmarks_type2, landmarks_type3
 from .profile import mean, outlier, preprocess
