@@ -122,9 +122,9 @@ class OutlierCommand(Command):
             with ProfileData(args.output, "w").create(M, res, name) as out:
                 for skip, Y, L, name in zip(
                     is_outlier,
-                    self._file["profiles"],
-                    self._file["len"],
-                    self._file["names"],
+                    data._file["profiles"],
+                    data._file["len"],
+                    data.profile_names(),
                 ):
                     if not skip:
                         out.write_profiles(Y.reshape(1, -1), [L], [name])
