@@ -112,10 +112,10 @@ def outlier(profiles, thres=3.5):
     >>> from heavyedge.api import outlier
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
     ...     profiles = list(data.profiles())
-    ...     outlier = outlier(profiles, 1.5)
+    ...     is_outlier = outlier(profiles, 1.5)
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
-    ... for profile, is_outlier in zip(profiles, outlier):
-    ...     if is_outlier:
+    ... for profile, skip in zip(profiles, is_outlier):
+    ...     if skip:
     ...         plt.plot(profile, color="red")
     ...     else:
     ...         plt.plot(profile, alpha=0.2, color="gray")

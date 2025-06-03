@@ -85,6 +85,53 @@ class PrepCommand(Command):
         self.logger.info(f"Preprocessed: {out.path}")
 
 
+@register_command("outlier", "Filter outlier profiles")
+class OutlierCommand(Command):
+    def add_parser(self, main_parser):
+        outlier = main_parser.add_parser(
+            self.name,
+            description="Remove outlier profiles and save as hdf5 file.",
+            epilog="The resulting hdf5 file is in 'ProfileData' structure.",
+        )
+        outlier.add_argument(
+            "profiles",
+            type=pathlib.Path,
+            help="Path to preprocessed profile data in 'ProfileData' structure.",
+        )
+        outlier.add_config_argument(
+            "--z",
+            type=float,
+            help="Modified Z-score threshold for outlier detection.",
+        )
+        outlier.add_argument(
+            "-o", "--output", type=pathlib.Path, help="Output file path"
+        )
+
+    def run(self, args):
+        from heavyedge import ProfileData
+        from heavyedge.api import outlier
+
+        self.logger.info(f"Removing outliers: {args.profiles}")
+
+        with ProfileData(args.profiles) as data:
+            _, M = data.shape()
+            res = data.resolution()
+            name = data.name()
+            is_outlier = outlier(data.profiles(), args.z)
+
+            with ProfileData(args.output, "w").create(M, res, name) as out:
+                for skip, Y, L, name in zip(
+                    is_outlier,
+                    self._file["profiles"],
+                    self._file["len"],
+                    self._file["names"],
+                ):
+                    if not skip:
+                        out.write_profiles(Y.reshape(1, -1), [L], [name])
+
+        self.logger.info(f"Removed outliers: {out.path}")
+
+
 @register_command("mean", "Compute mean profile")
 class MeanCommand(Command):
     def add_parser(self, main_parser):
@@ -120,7 +167,7 @@ class MeanCommand(Command):
             pmean = mean(data.profiles(), args.wnum)
 
         with ProfileData(args.output, "w").create(M, res, name) as out:
-            L = len(mean)
+            L = len(pmean)
             pmean = np.pad(pmean, (0, M - L), constant_values=np.nan)
             out.write_profile(pmean.reshape(1, -1), [L], [name])
 
