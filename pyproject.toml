@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "heavyedge"
+version = "0.0.0"
+dependencies = [
+    "numpy",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "tqdm",
+]
+dev = [
+    "flake8",
+    "black",
+    "isort",
+    "heavyedge[test]"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+doctest_optionflags = [
+    "NORMALIZE_WHITESPACE",
+    "IGNORE_EXCEPTION_DETAIL",
+    "ELLIPSIS",
+]
+addopts = "--doctest-modules"

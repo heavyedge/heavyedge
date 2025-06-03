@@ -1,0 +1,2 @@
+graft src/heavyedge/samples/Type*
+include src/heavyedge/samples/*.yml
