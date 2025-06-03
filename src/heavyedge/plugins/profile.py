@@ -79,6 +79,7 @@ class PrepCommand(Command):
                     continue
                 if np.any(np.isnan(profile)):
                     continue
-                M = len(profile)
+                Y, L = preprocess(profile, args.std, args.std_thres)
+                out.write_profiles(Y.reshape(1, -1), [L], [name])
 
         self.logger.info(f"Preprocessed: {out.path}")
