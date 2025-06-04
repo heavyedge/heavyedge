@@ -4,9 +4,12 @@ import numpy as np
 from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks, peak_prominences
 
+from ..segreg import segreg
+
 __all__ = [
     "landmarks_type2",
     "landmarks_type3",
+    "plateau_type2",
 ]
 
 
@@ -116,3 +119,37 @@ def landmarks_type3(Y, sigma):
         knee, trough = K_pos[np.argmax(np.abs(dists[K_pos]))]
 
     return np.array([cp, peak, trough, knee])
+
+
+def plateau_type2(x, Y, peak, knee):
+    """Find plateau point for heavy edge profile without trough.
+
+    Parameters
+    ----------
+    x : (M,) array
+        Spatial coordinates of profile data.
+    Y : (M,) array
+        1-dimensional heavy edge profile data.
+        The last point must be the contact point.
+    peak, knee : int
+        Peak and knee point indices.
+
+    Returns
+    -------
+    plateau : scalar
+        Plateau boundary coordinate.
+
+    Examples
+    --------
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> from heavyedge.api import plateau_type2
+    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
+    ...     Y = next(data.profiles())
+    ...     x = data.x()[:len(Y)]
+    >>> plateau = plateau_type2(x, Y, 2000, 1300)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(x, Y)
+    ... plt.axvline(plateau)
+    """
+    (b0, b1, b2, psi), _ = segreg(x[:peak], Y[:peak], x[knee])
+    return psi

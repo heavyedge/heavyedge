@@ -36,7 +36,7 @@ def segreg(x, Y, psi0, tol=1e-5, maxiter=30):
     Returns
     -------
     params : (4,) ndarray
-        Estimated parameters.
+        Estimated parameters: b0, b1, b2, psi.
     reached_max : bool
         Iteration is finished not by convergence but by reaching maximum iteration.
 
