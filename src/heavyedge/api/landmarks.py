@@ -10,6 +10,7 @@ __all__ = [
     "landmarks_type2",
     "landmarks_type3",
     "plateau_type2",
+    "plateau_type3",
 ]
 
 
@@ -153,4 +154,39 @@ def plateau_type2(x, Y, peak, knee):
     ... plt.plot(X, b0 + b1 * X)
     """
     (b0, b1, _, psi), _ = segreg(x[:peak], Y[:peak], x[knee])
+    return (b0, b1, psi)
+
+
+def plateau_type3(x, Y, trough, knee):
+    """Find plateau for heavy edge profile with trough.
+
+    Parameters
+    ----------
+    x : (M,) array
+        Spatial coordinates of profile data.
+    Y : (M,) array
+        1-dimensional heavy edge profile data.
+        The last point must be the contact point.
+    peak, knee : int
+        Trough and knee point indices.
+
+    Returns
+    -------
+    b0, b1, psi : scalar
+        Plateau height, slope and boundary.
+
+    Examples
+    --------
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> from heavyedge.api import plateau_type3
+    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
+    ...     Y = next(data.profiles())
+    ...     x = data.x()[:len(Y)]
+    >>> b0, b1, psi = plateau_type3(x, Y, 1500, 1000)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(x, Y, color="gray", alpha=0.2)
+    ... X = x[x < psi]
+    ... plt.plot(X, b0 + b1 * X)
+    """
+    (b0, b1, _, psi), _ = segreg(x[:trough], Y[:trough], x[knee])
     return (b0, b1, psi)
