@@ -59,7 +59,7 @@ jobs:
 
       - name: Check with twine
         run: |
-          pip install twine
+          pip install twine>=6.1.0
           twine check dist/* --strict
 
   publish:
