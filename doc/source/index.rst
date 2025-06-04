@@ -7,6 +7,9 @@
 HeavyEdge documentation
 ***********************
 
+.. plot:: plot-header.py
+    :include-source: False
+
 Basic package to analyze coating profile data with "heavy edge".
 
 Usage
