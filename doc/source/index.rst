@@ -70,6 +70,9 @@ Low-level API
 .. automodule:: heavyedge.wasserstein
     :members:
 
+.. automodule:: heavyedge.segreg
+    :members:
+
 Plugin API
 ==========
 
