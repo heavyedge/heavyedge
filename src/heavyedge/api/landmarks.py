@@ -154,6 +154,10 @@ def plateau_type2(x, Y, peak, knee):
     ... plt.plot(X, b0 + b1 * X)
     """
     (b0, b1, _, psi), _ = segreg(x[:peak], Y[:peak], x[knee])
+    if b1 < 0:
+        psi_idx = knee + np.argmin(np.abs(Y[knee:peak] - b0))
+        b1 = 0.0
+        psi = x[psi_idx]
     return (b0, b1, psi)
 
 
