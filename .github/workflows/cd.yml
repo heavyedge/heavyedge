@@ -78,4 +78,5 @@ jobs:
       - name: Publish to PyPI
         run: |
           pip install twine
-          twine upload dist/* -u __token__ -p ${{ secrets.testpypi_token }}
+          pip install -U packaging
+          twine upload dist/* -u __token__ -p ${{ secrets.pypi_token }}
