@@ -122,7 +122,7 @@ def landmarks_type3(Y, sigma):
 
 
 def plateau_type2(x, Y, peak, knee):
-    """Find plateau point for heavy edge profile without trough.
+    """Find plateau for heavy edge profile without trough.
 
     Parameters
     ----------
@@ -136,8 +136,8 @@ def plateau_type2(x, Y, peak, knee):
 
     Returns
     -------
-    plateau : scalar
-        Plateau boundary coordinate.
+    b0, b1, psi : scalar
+        Plateau height, slope and boundary.
 
     Examples
     --------
@@ -146,10 +146,11 @@ def plateau_type2(x, Y, peak, knee):
     >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
     ...     Y = next(data.profiles())
     ...     x = data.x()[:len(Y)]
-    >>> plateau = plateau_type2(x, Y, 2000, 1300)
+    >>> b0, b1, psi = plateau_type2(x, Y, 2000, 1300)
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
-    ... plt.plot(x, Y)
-    ... plt.axvline(plateau)
+    ... plt.plot(x, Y, color="gray", alpha=0.2)
+    ... X = x[x < psi]
+    ... plt.plot(X, b0 + b1 * X)
     """
-    (b0, b1, b2, psi), _ = segreg(x[:peak], Y[:peak], x[knee])
-    return psi
+    (b0, b1, _, psi), _ = segreg(x[:peak], Y[:peak], x[knee])
+    return (b0, b1, psi)
