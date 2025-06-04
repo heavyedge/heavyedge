@@ -162,3 +162,23 @@ def tmp_rawdata_type2_path(tmp_path_factory):
             ),
         )
     return rawdir
+
+
+@pytest.fixture(scope="session")
+def tmp_rawdata_type3_path(tmp_path_factory):
+    path = tmp_path_factory.mktemp("RawData-")
+    rawdata_factory = RawDataFactory(path)
+
+    DATA_SIZE = 70
+    RANDOM_SCALE = 5
+
+    rawdir = rawdata_factory.mkrawdir("Type3-00")
+    for i in range(5):
+        rawdata_factory.mkrawfile(
+            rawdir,
+            f"{str(i).zfill(2)}.csv",
+            profile_type3(
+                700, 1, 50, 5, 700, data_size=DATA_SIZE, random_scale=RANDOM_SCALE
+            ),
+        )
+    return rawdir
