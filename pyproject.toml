@@ -73,7 +73,7 @@ addopts = "--ignore=doc --doctest-modules --import-mode=importlib"
 # scipy skips these wheels
 skip = "cp36-* cp37-* cp38-* cp39-* pp* *_ppc64le *_i686 *_s390x"
 test-extras = ["test"]
-test-command = "pytest {package}"
+test-command = "pytest {package}/tests"
 
 [project.scripts]
 heavyedge = "heavyedge:main"
