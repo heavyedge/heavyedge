@@ -5,7 +5,9 @@
 [![License](https://img.shields.io/github/license/heavyedge/heavyedge)](https://github.com/heavyedge/heavyedge/blob/master/LICENSE)
 [![CI](https://github.com/heavyedge/heavyedge/actions/workflows/ci.yml/badge.svg)](https://github.com/heavyedge/heavyedge/actions/workflows/ci.yml)
 [![CD](https://github.com/heavyedge/heavyedge/actions/workflows/cd.yml/badge.svg)](https://github.com/heavyedge/heavyedge/actions/workflows/cd.yml)
-[![Docs](https://readthedocs.org/projects/curvesimilarities/badge/?version=latest)](https://curvesimilarities.readthedocs.io/en/latest/?badge=latest)
+[![Docs](https://readthedocs.org/projects/heavyedge/badge/?version=latest)](https://heavyedge.readthedocs.io/en/latest/?badge=latest)
+
+![title](https://heavyedge.readthedocs.io/en/latest/_images/plot-header.png)
 
 Basic package for heavy edge coating profile analysis.
 
