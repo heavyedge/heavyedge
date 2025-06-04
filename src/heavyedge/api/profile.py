@@ -30,8 +30,8 @@ def preprocess(Y, sigma, std_thres):
     -------
     Y : 1-D array
         Preprocessed profile data.
-    cp : int
-        Index of contact point in *Y*.
+    L : int
+        Length of *Y* until the contact point.
 
     Notes
     -----
@@ -78,7 +78,7 @@ def preprocess(Y, sigma, std_thres):
         cp = len(Y) - 1
 
     Y = Y - Y[cp]
-    return Y, cp
+    return Y, cp + 1
 
 
 def outlier(profiles, thres=3.5):
