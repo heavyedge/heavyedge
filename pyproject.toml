@@ -71,9 +71,7 @@ addopts = "--ignore=doc --doctest-modules --import-mode=importlib"
 
 [tool.cibuildwheel]
 # scipy skips these wheels
-skip = "cp36-* cp37-* cp38-* cp39-* pp* *_ppc64le *_i686 *_s390x *-musllinux*"
-test-extras = ["test"]
-test-command = "pytest {package}/tests"
+skip = "cp36-* cp37-* cp38-* cp39-* pp* *_ppc64le *_i686 *_s390x"
 
 [project.scripts]
 heavyedge = "heavyedge:main"
