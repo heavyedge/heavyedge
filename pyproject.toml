@@ -11,11 +11,13 @@ authors = [
 description = "Central package for heavy edge coating profile analysis"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = [
+    "LICENSE",
+]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -68,6 +70,10 @@ doctest_optionflags = [
     "ELLIPSIS",
 ]
 addopts = "--ignore=doc --doctest-modules --import-mode=importlib"
+
+[tool.cibuildwheel]
+# scipy skips these wheels
+skip = "cp36-* cp37-* cp38-* cp39-* pp* *_ppc64le *_i686 *_s390x"
 
 [project.scripts]
 heavyedge = "heavyedge:main"
