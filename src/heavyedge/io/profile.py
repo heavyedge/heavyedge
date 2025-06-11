@@ -33,6 +33,9 @@ class ProfileData:
     def __exit__(self, type, value, trace_back):
         self._file.close()
 
+    def __len__(self):
+        return self.shape()[0]
+
     def close(self):
         self._file.close()
 

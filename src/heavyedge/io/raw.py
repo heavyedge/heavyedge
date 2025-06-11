@@ -21,6 +21,9 @@ class RawProfileBase(abc.ABC):
     def __init__(self, path):
         self.path = Path(path).expanduser()
 
+    def __len__(self):
+        return self.count_profiles()
+
     @abc.abstractmethod
     def count_profiles(self):
         """Number of raw profiles.
