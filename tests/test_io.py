@@ -1,9 +1,25 @@
+import numpy as np
+
 from heavyedge import ProfileData, RawProfileCsvs
 
 
 def test_RawData_dunder(tmp_rawdata_type2_path):
     data = RawProfileCsvs(tmp_rawdata_type2_path)
     assert len(data) == data.count_profiles()
+
+    item = data[0]
+    profile = next(data.profiles())
+    name = next(data.profile_names())
+    assert np.all(item[0] == profile)
+    assert item[1] == name
+
+    item = data[:1]
+    assert np.all(item[0] == [profile])
+    assert np.all(item[1] == [name])
+
+    item = data[:0]
+    assert item[0].size == 0
+    assert len(item[1]) == 0
 
 
 def test_ProfileData_dunder(tmp_prepdata_type2_path):
