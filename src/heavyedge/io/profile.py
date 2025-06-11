@@ -21,6 +21,11 @@ class ProfileData:
         Mode to open the file.
     kwargs : dict
         Optional arguments passed to :class:`h5py.File`.
+
+    Notes
+    -----
+    ``self[key]`` returns a tuple of full profile data, profile length(s) and
+    profile name(s).
     """
 
     def __init__(self, path, mode="r", **kwargs):
@@ -35,6 +40,22 @@ class ProfileData:
 
     def __len__(self):
         return self.shape()[0]
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            profile = self._file["profiles"][key]
+            length = self._file["len"][key]
+            name = str(self._file["names"][key], encoding="utf-8")
+            return (profile, length, name)
+        elif isinstance(key, slice):
+            profiles = self._file["profiles"][key]
+            lengths = self._file["len"][key]
+            names = np.char.decode(
+                self._file["names"][key].astype("S"), encoding="utf-8"
+            )
+            return (profiles, lengths, names)
+        else:
+            raise TypeError("Invalid argument type. Must be int or slice.")
 
     def close(self):
         self._file.close()
@@ -163,7 +184,7 @@ class ProfileData:
         str
         """
         for name in self._file["names"]:
-            yield name
+            yield str(name, encoding="utf-8")
 
     def all_profiles(self):
         """Return all profiles.
