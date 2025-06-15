@@ -10,29 +10,47 @@ import numpy as np
 from ._wasserstein import optimize_q
 
 __all__ = [
+    "quantile",
     "wdist",
     "wmean",
 ]
 
 
-def quantile(pdf, x):
-    """Convert probability distribution function to quantile function.
+def quantile(x, f, t):
+    """Convert probability mass function to quantile function.
 
     Parameters
     ----------
-    pdf : ndarray
-        An 1D array of probability distribution function values.
     x : ndarray
-        An 1D array of X values for quantile function. Must be strictly increasing
+        Random variable over which *f* is measured.
+    f : ndarray
+        An 1D array of probability mass function.
+    t : ndarray
+        An 1D array of t values for quantile function. Must be strictly increasing
         from 0 to 1.
 
     Returns
     -------
     ndarray
-        Quantile function of *pdf* over *x*.
+        Quantile function of *f* over *t*.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> from heavyedge.wasserstein import quantile
+    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
+    ...     Y = next(data.profiles())
+    ...     x = data.x()[:len(Y)]
+    >>> f = Y / Y.sum()
+    >>> t = np.linspace(0, 1, 100)
+    >>> Q = quantile(x[:len(f)], f, t)
     """
-    cdf = np.insert(np.cumsum(pdf), 0, 0)
-    return np.interp(x, cdf, np.arange(len(cdf)))
+    G = np.insert(np.cumsum(f), 0, 0)
+    x = np.insert(x, 0, x[0] - (x[1] - x[0]))
+    Q = np.interp(t, G, x)
+    Q[-1] = x[-1]
+    return Q
 
 
 def wdist(G1, G2, grid_num):
@@ -54,8 +72,12 @@ def wdist(G1, G2, grid_num):
     scalar
         Wasserstein distance.
     """
+    x1 = np.arange(len(G1))
+    x2 = np.arange(len(G2))
     grid = np.linspace(0, 1, grid_num)
-    return np.trapezoid((quantile(G1, grid) - quantile(G2, grid)) ** 2, grid) ** 0.5
+    Q1 = quantile(x1, G1, grid)
+    Q2 = quantile(x2, G2, grid)
+    return np.trapezoid((Q1 - Q2) ** 2, grid) ** 0.5
 
 
 def wmean(Y, grid_num):
@@ -74,7 +96,7 @@ def wmean(Y, grid_num):
         Averaged *Y*.
     """
     grid = np.linspace(0, 1, grid_num)
-    Q = np.array([quantile(y, grid) for y in Y])
+    Q = np.array([quantile(np.arange(len(y)), y, grid) for y in Y])
     g = np.mean(Q, axis=0)
 
     if np.all(np.diff(g) >= 0):
