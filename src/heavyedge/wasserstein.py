@@ -94,28 +94,48 @@ def wdist(x1, f1, x2, f2, grid_num):
     return np.trapezoid((Q1 - Q2) ** 2, grid) ** 0.5
 
 
-def wmean(Y, grid_num):
-    """Fréchet mean of probability distrubution functions using Wasserstein metric.
+def wmean(xs, fs, grid_num):
+    """Fréchet mean of probability distrubutions using Wasserstein metric.
 
     Parameters
     ----------
-    Y : list of array
-        Probability distribution functions.
+    xs : list of ndarray
+        Points over which each distribution in *fs* is measured.
+    fs : list of ndarray
+        Empirical probability density functions.
     grid_num : int
         Number of sample points in [0, 1] to construct regression results.
 
     Returns
     -------
-    ndarray
-        Averaged *Y*.
+    x, f : ndarray
+        Probability density function.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> from heavyedge.wasserstein import wmean
+    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
+    ...     x = data.x()
+    ...     (Y1, Y2), (L1, L2), _ = data[:2]
+    >>> x1, Y1 = x[:L1], Y1[:L1]
+    >>> x2, Y2 = x[:L2] + 3, Y2[:L2]
+    >>> f1, f2 = Y1 / np.trapezoid(Y1, x1), Y2 / np.trapezoid(Y2, x2)
+    >>> x, f = wmean([x1, x2], [f1, f2], 100)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(x1, f1, "--", color="gray")
+    ... plt.plot(x2, f2, "--", color="gray")
+    ... plt.plot(x, f)
     """
     grid = np.linspace(0, 1, grid_num)
-    Q = np.array([quantile(np.arange(len(y)), y, grid) for y in Y])
+    Q = np.array([quantile(x, f, grid) for x, f in zip(xs, fs)])
     g = np.mean(Q, axis=0)
-
     if np.all(np.diff(g) >= 0):
         q = g
     else:
         q = optimize_q(g)
-    cdf = np.interp(np.arange(int(q[-1])), q, np.linspace(0, 1, len(q)))
-    return np.concatenate([np.diff(cdf), [0]])
+    pdf = 1 / np.gradient(q, grid)
+    pdf[-1] = 0
+    pdf /= np.trapezoid(pdf, q)
+    return q, pdf
