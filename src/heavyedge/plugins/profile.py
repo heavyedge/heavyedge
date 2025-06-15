@@ -162,9 +162,10 @@ class MeanCommand(Command):
 
         with ProfileData(args.profiles) as data:
             _, M = data.shape()
+            x = data.x()
             res = data.resolution()
             name = data.name()
-            pmean = mean(data.profiles(), args.wnum)
+            pmean = mean(x, data.profiles(), args.wnum)
 
         with ProfileData(args.output, "w").create(M, res, name) as out:
             L = len(pmean)
