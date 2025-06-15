@@ -2,6 +2,7 @@
 
 import abc
 import csv
+from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
@@ -34,7 +35,7 @@ class RawProfileBase(abc.ABC):
         By default, uses :meth:`all_profiles` and :meth:`profile_names`.
         Subclasses are encouraged to redefine this method for better performance.
         """
-        return (self.all_profiles()[key], list(self.profile_names())[key])
+        return (self.all_profiles()[key], np.array(self.profile_names())[key])
 
     @abc.abstractmethod
     def count_profiles(self):
@@ -126,7 +127,14 @@ class RawProfileCsvs(RawProfileBase):
             for file in files:
                 profiles.append(self._read_profile(file))
                 names.append(str(file.stem))
-            return (np.array(profiles), names)
+            return (np.array(profiles), np.array(names))
+        elif isinstance(key, Sequence):
+            profiles, names = [], []
+            for k in key:
+                file = self._files[k]
+                profiles.append(self._read_profile(file))
+                names.append(str(file.stem))
+            return (np.array(profiles), np.array(names))
         else:
             raise TypeError("Invalid argument type. Must be int or slice.")
 
