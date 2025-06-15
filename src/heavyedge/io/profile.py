@@ -1,5 +1,6 @@
 """Processed profile data files."""
 
+from collections.abc import Sequence
 from pathlib import Path
 
 import h5py
@@ -47,7 +48,7 @@ class ProfileData:
             length = self._file["len"][key]
             name = str(self._file["names"][key], encoding="utf-8")
             return (profile, length, name)
-        elif isinstance(key, slice):
+        elif isinstance(key, (slice, Sequence)):
             profiles = self._file["profiles"][key]
             lengths = self._file["len"][key]
             names = np.char.decode(

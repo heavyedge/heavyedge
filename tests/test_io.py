@@ -17,6 +17,10 @@ def test_RawData_dunder(tmp_rawdata_type2_path):
     assert np.all(item[0] == [profile])
     assert np.all(item[1] == [name])
 
+    item = data[[0]]
+    assert np.all(item[0] == [profile])
+    assert np.all(item[1] == [name])
+
     item = data[:0]
     assert item[0].size == 0
     assert len(item[1]) == 0
@@ -35,6 +39,11 @@ def test_ProfileData_dunder(tmp_prepdata_type2_path):
         assert item[2] == name
 
         item = data[:1]
+        assert np.all(item[0] == [profile])
+        assert np.all(item[1] == [length])
+        assert np.all(item[2] == [name])
+
+        item = data[[0]]
         assert np.all(item[0] == [profile])
         assert np.all(item[1] == [length])
         assert np.all(item[2] == [name])
