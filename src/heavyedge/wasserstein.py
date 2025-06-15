@@ -84,7 +84,7 @@ def wdist(x1, f1, x2, f2, grid_num):
     ...     x = data.x()
     ...     (Y1, Y2), (L1, L2), _ = data[:2]
     >>> x1, f1 = x[:L1], Y1[:L1] / Y1[:L1].sum()
-    >>> x2, f2 = x[:L2] + 3, Y2[:L2] / Y2[:L2].sum()
+    >>> x2, f2 = x[:L2], Y2[:L2] / Y2[:L2].sum()
     >>> d = wdist(x1, f1, x2, f2, 100)
     """
     grid = np.linspace(0, 1, grid_num)
