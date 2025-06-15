@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RawProfileBase` now supports `len()` and indexing.
 - `ProfileData` now supports `len()` and indexing.
 
+### Changed
+
+- Functions in `heavyedge.wasserstein` are changed.
+
 ## [1.0.1] - 2025-06-05
 
 ### Fixed
