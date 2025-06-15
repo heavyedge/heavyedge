@@ -12,14 +12,14 @@ from heavyedge.api import (
 with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
     x2 = data.x()
     profiles2 = list(data.profiles())
-mean2 = mean(profiles2, 1000)
+mean2 = mean(x2, profiles2, 1000)
 lm2 = landmarks_type2(mean2, 32)
 b0_2, b1_2, psi_2 = plateau_type2(x2[: len(mean2)], mean2, lm2[1], lm2[2])
 
 with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
     x3 = data.x()
     profiles3 = list(data.profiles())
-mean3 = mean(profiles3, 1000)
+mean3 = mean(x3, profiles3, 1000)
 lm3 = landmarks_type3(mean3, 32)
 b0_3, b1_3, psi_3 = plateau_type3(x3[: len(mean3)], mean3, lm3[2], lm3[3])
 
