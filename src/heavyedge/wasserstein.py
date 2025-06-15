@@ -6,6 +6,8 @@ Wasserstein-related functions.
 """
 
 import numpy as np
+from scipy.integrate import cumulative_trapezoid
+from scipy.interpolate import interp1d
 
 from ._wasserstein import optimize_q
 
@@ -17,17 +19,17 @@ __all__ = [
 
 
 def quantile(x, f, t):
-    """Convert probability mass function to quantile function.
+    """Convert a probability distribution to a quantile function.
 
     Parameters
     ----------
     x : ndarray
-        Random variable over which *f* is measured.
+        Points over which *f* is measured.
     f : ndarray
-        An 1D array of probability mass function.
+        The empirical probability density function.
     t : ndarray
-        An 1D array of t values for quantile function. Must be strictly increasing
-        from 0 to 1.
+        Points over which the quantile function will be measured.
+        Must be strictly increasing from 0 to 1.
 
     Returns
     -------
@@ -40,21 +42,18 @@ def quantile(x, f, t):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.wasserstein import quantile
     >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
-    ...     x = data.x()
     ...     Y = next(data.profiles())
-    >>> f = Y / Y.sum()
+    ...     x = data.x()[:len(Y)]
+    >>> f = Y / np.trapezoid(Y, x)
     >>> t = np.linspace(0, 1, 100)
     >>> Q = quantile(x[:len(f)], f, t)
     """
-    G = np.insert(np.cumsum(f), 0, 0)
-    x = np.insert(x, 0, x[0] - (x[1] - x[0]))
-    Q = np.interp(t, G, x)
-    Q[-1] = x[-1]
-    return Q
+    G = cumulative_trapezoid(f, x, initial=0)
+    return interp1d(G, x, bounds_error=False, fill_value=(x[0], x[-1]))(t)
 
 
 def wdist(x1, f1, x2, f2, grid_num):
-    r"""Wasserstein distance between two 1D probability mass functions.
+    r"""Wasserstein distance between two 1D probability distributions.
 
     .. math::
 
@@ -65,9 +64,9 @@ def wdist(x1, f1, x2, f2, grid_num):
     Parameters
     ----------
     x1, f1 : ndarray
-        The first random variable and probability mass function.
+        The first empirical probability density function.
     x2, f2 : ndarray
-        The second random variable and probability mass function.
+        The second empirical probability density function.
     grid_num : int
         Number of sample points in [0, 1] to approximate the integral.
 
@@ -78,13 +77,15 @@ def wdist(x1, f1, x2, f2, grid_num):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.wasserstein import wdist
     >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
     ...     x = data.x()
     ...     (Y1, Y2), (L1, L2), _ = data[:2]
-    >>> x1, f1 = x[:L1], Y1[:L1] / Y1[:L1].sum()
-    >>> x2, f2 = x[:L2], Y2[:L2] / Y2[:L2].sum()
+    >>> x1, Y1 = x[:L1], Y1[:L1]
+    >>> x2, Y2 = x[:L2], Y2[:L2]
+    >>> f1, f2 = Y1 / np.trapezoid(Y1, x1), Y2 / np.trapezoid(Y2, x2)
     >>> d = wdist(x1, f1, x2, f2, 100)
     """
     grid = np.linspace(0, 1, grid_num)
