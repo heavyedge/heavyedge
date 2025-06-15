@@ -127,12 +127,14 @@ def outlier(profiles, thres=3.5):
     return np.abs(mod_z) > thres
 
 
-def mean(profiles, grid_num):
+def mean(x, profiles, grid_num):
     """Fréchet mean of profiles using Wasserstein distance.
 
     Parameters
     ----------
-    profiles : iterable of array
+    x : ndarray
+        X coordinates of *profiles*.
+    profiles : list of array
         Profile data, with last point being the contact point.
     grid_num : int
         Number of sample points in [0, 1] to construct regression results.
@@ -147,16 +149,26 @@ def mean(profiles, grid_num):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import mean
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
+    ...     x = data.x()
     ...     profiles = list(data.profiles())
-    ...     mean = mean(profiles, 1000)
+    >>> mean = mean(x, profiles, 100)
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... for profile in profiles:
     ...     plt.plot(profile, alpha=0.2, color="gray")
     ... plt.plot(mean)
     """
-    areas, pdfs = [], []
+    xs, areas, pdfs = [], [], []
     for prof in profiles:
-        A = np.sum(prof)
+        x_ = x[: len(prof)]
+        A = np.trapezoid(prof, x_)
+        xs.append(x_)
         areas.append(A)
         pdfs.append(prof / A)
-    return wmean(pdfs, grid_num) * np.mean(areas)
+    X, F = wmean(xs, pdfs, grid_num)
+    # Fix the last point of X to grid
+    last_idx = np.argmin(np.abs(x - X[-1]))
+    X[-1] = x[last_idx]
+
+    shape = np.interp(x[: last_idx + 1], X, F)
+    shape /= np.trapezoid(shape, x[: len(shape)])
+    return shape * np.mean(areas)
