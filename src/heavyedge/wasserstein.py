@@ -104,7 +104,7 @@ def wmean(xs, fs, grid_num):
     fs : list of ndarray
         Empirical probability density functions.
     grid_num : int
-        Number of sample points in [0, 1] to construct regression results.
+        Number of sample points in [0, 1] to approximate the integral.
 
     Returns
     -------
