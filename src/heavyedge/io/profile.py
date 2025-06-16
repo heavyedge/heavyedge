@@ -1,5 +1,6 @@
 """Processed profile data files."""
 
+import numbers
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -43,7 +44,7 @@ class ProfileData:
         return self.shape()[0]
 
     def __getitem__(self, key):
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             profile = self._file["profiles"][key]
             length = self._file["len"][key]
             name = str(self._file["names"][key], encoding="utf-8")
@@ -56,7 +57,7 @@ class ProfileData:
             )
             return (profiles, lengths, names)
         else:
-            raise TypeError("Invalid index type. Must be int, slice or sequence.")
+            raise TypeError(f"Invalid index type: {type(key)}")
 
     def close(self):
         self._file.close()

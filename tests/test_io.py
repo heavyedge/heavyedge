@@ -7,7 +7,7 @@ def test_RawData_dunder(tmp_rawdata_type2_path):
     data = RawProfileCsvs(tmp_rawdata_type2_path)
     assert len(data) == data.count_profiles()
 
-    item = data[0]
+    item = data[np.int64(0)]
     profile = next(data.profiles())
     name = next(data.profile_names())
     assert np.all(item[0] == profile)
@@ -30,7 +30,7 @@ def test_ProfileData_dunder(tmp_prepdata_type2_path):
     with ProfileData(tmp_prepdata_type2_path) as data:
         assert len(data) == data.shape()[0]
 
-        item = data[0]
+        item = data[np.int64(0)]
         profile = data.all_profiles()[0]
         length = len(next(data.profiles()))
         name = next(data.profile_names())

@@ -2,6 +2,7 @@
 
 import abc
 import csv
+import numbers
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -118,7 +119,7 @@ class RawProfileCsvs(RawProfileBase):
         return profile
 
     def __getitem__(self, key):
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             file = self._files[key]
             return (self._read_profile(file), str(file.stem))
         elif isinstance(key, slice):
@@ -136,7 +137,7 @@ class RawProfileCsvs(RawProfileBase):
                 names.append(str(file.stem))
             return (np.array(profiles), np.array(names))
         else:
-            raise TypeError("Invalid index type. Must be int, slice or sequence.")
+            raise TypeError(f"Invalid index type: {type(key)}")
 
     def count_profiles(self):
         return len(list(self._files))
