@@ -49,7 +49,7 @@ class ProfileData:
             length = self._file["len"][key]
             name = str(self._file["names"][key], encoding="utf-8")
             return (profile, length, name)
-        elif isinstance(key, (slice, Sequence)):
+        elif isinstance(key, (slice, Sequence, np.ndarray)):
             profiles = self._file["profiles"][key]
             lengths = self._file["len"][key]
             names = np.char.decode(

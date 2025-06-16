@@ -129,7 +129,7 @@ class RawProfileCsvs(RawProfileBase):
                 profiles.append(self._read_profile(file))
                 names.append(str(file.stem))
             return (np.array(profiles), np.array(names))
-        elif isinstance(key, Sequence):
+        elif isinstance(key, (Sequence, np.ndarray)):
             profiles, names = [], []
             for k in key:
                 file = self._files[k]
