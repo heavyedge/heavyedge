@@ -136,7 +136,7 @@ class RawProfileCsvs(RawProfileBase):
                 names.append(str(file.stem))
             return (np.array(profiles), np.array(names))
         else:
-            raise TypeError("Invalid argument type. Must be int or slice.")
+            raise TypeError("Invalid index type. Must be int, slice or sequence.")
 
     def count_profiles(self):
         return len(list(self._files))
