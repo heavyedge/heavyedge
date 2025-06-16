@@ -56,7 +56,7 @@ class ProfileData:
             )
             return (profiles, lengths, names)
         else:
-            raise TypeError("Invalid argument type. Must be int or slice.")
+            raise TypeError("Invalid index type. Must be int, slice or sequence.")
 
     def close(self):
         self._file.close()
