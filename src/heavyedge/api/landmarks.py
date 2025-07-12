@@ -117,7 +117,7 @@ def landmarks_type3(Y, sigma):
         slope = np.diff(dists)
         (extrema,) = np.nonzero(np.diff(np.sign(slope)))
         K_pos = extrema[slope[extrema] > 0]
-        knee, trough = K_pos[np.argmax(np.abs(dists[K_pos]))]
+        knee = trough = K_pos[np.argmax(np.abs(dists[K_pos]))]
 
     return np.array([cp, peak, trough, knee])
 
