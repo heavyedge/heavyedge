@@ -81,6 +81,10 @@ Plugin API
 
 HeavyEdge provides the following entry points for plugins.
 
+To list all installed plugins, run::
+
+   heavyedge --list-plugins
+
 Command line extension
 ----------------------
 
