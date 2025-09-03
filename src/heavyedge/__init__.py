@@ -68,13 +68,18 @@ def main():
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         default="WARNING",
-        help="Set logging level.",
+        help="Set logging level",
+    )
+    heavyedge_parser.add_argument(
+        "--list-plugins",
+        action="store_true",
+        help="List all installed plugins",
     )
     subparser = heavyedge_parser.add_subparsers(
         title="Command",
         dest="command",
         metavar="<command>",
-        help="Refer to the epilog for a list of commands.",
+        help="Refer to the epilog for a list of commands",
         parser_class=ConfigArgumentParser,
     )
 
@@ -95,7 +100,16 @@ def main():
     )
     logger.debug(f"Input command: {' '.join(sys.argv)}")
 
-    if args.command is None:
+    if args.list_plugins:
+
+        INDENT = 2 * " "
+        msg = "LIST OF COMMAND PLUGINS\n"
+        for ep in entry_points(group="heavyedge.commands"):
+            msg += f"{INDENT}{ep.name} ({ep.value})\n"
+
+        print(msg)
+
+    elif args.command is None:
         heavyedge_parser.print_help(sys.stderr)
         sys.exit(1)
 
