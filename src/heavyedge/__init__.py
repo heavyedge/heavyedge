@@ -103,8 +103,12 @@ def main():
     if args.list_plugins:
 
         INDENT = 2 * " "
-        msg = "LIST OF COMMAND PLUGINS\n"
+        msg = "COMMAND PLUGINS\n"
         for ep in entry_points(group="heavyedge.commands"):
+            msg += f"{INDENT}{ep.name} ({ep.value})\n"
+        msg += "\n"
+        msg += "RAW DATA PLUGINS\n"
+        for ep in entry_points(group="heavyedge.rawdata"):
             msg += f"{INDENT}{ep.name} ({ep.value})\n"
 
         print(msg)
