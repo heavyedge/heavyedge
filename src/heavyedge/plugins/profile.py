@@ -194,7 +194,7 @@ class TrimCommand(Command):
         trim.add_config_argument(
             "--width",
             type=float,
-            help="Width of edges. If not passed, it is set to the length of the shortest profile.",
+            help="Edge width. If not passed, length of the shortest profile.",
         )
         trim.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
@@ -210,8 +210,12 @@ class TrimCommand(Command):
             res = data.resolution()
             name = data.name()
 
-            w = int(args.width * res)
             Ys, Ls, names = data[:]
+
+            if args.width is None:
+                w = Ls.min()
+            else:
+                w = int(args.width * res)
 
         mask1 = np.repeat(np.arange(M)[None, :] <= w, len(Ys), axis=0)
         mask2 = (np.arange(M)[None, :] >= (Ls - w)[:, None]) & (

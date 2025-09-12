@@ -68,3 +68,19 @@ def test_process_commands(tmp_rawdata_type2_path, tmp_path):
         check=True,
     )
     assert os.path.exists(merged_path)
+
+
+def test_trim_command(tmp_prepdata_type2_path, tmp_path):
+    trimmed_path = tmp_path / "TrimmedProfiles.h5"
+    subprocess.run(
+        [
+            "heavyedge",
+            "trim",
+            tmp_prepdata_type2_path,
+            "-o",
+            trimmed_path,
+        ],
+        capture_output=True,
+        check=True,
+    )
+    assert os.path.exists(trimmed_path)
