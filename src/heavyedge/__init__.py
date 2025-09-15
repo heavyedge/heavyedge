@@ -56,7 +56,7 @@ def main():
 
     max_order = max([x for x in ORDERS if x is not None])
     ORDERS = [x if x is not None else max_order for x in ORDERS]
-    COMMANDS = [x[1] for x in sorted(zip(ORDERS, COMMANDS))]
+    COMMANDS = [x for _, x in sorted(zip(ORDERS, COMMANDS))]
 
     heavyedge_parser = argparse.ArgumentParser(
         prog="heavyedge",
@@ -104,7 +104,7 @@ def main():
 
         INDENT = 2 * " "
         msg = "COMMAND PLUGINS\n"
-        for ep in entry_points(group="heavyedge.commands"):
+        for _, ep in sorted(zip(ORDERS, entry_points(group="heavyedge.commands"))):
             msg += f"{INDENT}{ep.name} ({ep.value})\n"
         msg += "\n"
         msg += "RAW DATA PLUGINS\n"
