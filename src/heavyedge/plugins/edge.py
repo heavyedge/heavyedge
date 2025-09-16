@@ -12,13 +12,19 @@ class ScaleCommand(Command):
     def add_parser(self, main_parser):
         scale = main_parser.add_parser(
             self.name,
-            description="Scale edge profiles by area under curve.",
+            description="Scale edge profiles.",
             epilog="The resulting hdf5 file is in 'ProfileData' structure.",
         )
         scale.add_argument(
             "profiles",
             type=pathlib.Path,
             help="Path to preprocessed profile data in 'ProfileData' structure.",
+        )
+        scale.add_argument(
+            "--type",
+            choices=["area", "plateau"],
+            default="area",
+            help="Scaling type (default=area).",
         )
         scale.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
@@ -37,8 +43,14 @@ class ScaleCommand(Command):
 
             Ys, Ls, names = data[:]
 
-        Ys[np.arange(M)[None, :] >= Ls[:, None]] = 0
-        Ys /= np.trapezoid(Ys, x, axis=1)[:, np.newaxis]
+        if args.type == "area":
+            Ys[np.arange(M)[None, :] >= Ls[:, None]] = 0
+            Ys /= np.trapezoid(Ys, x, axis=1)[:, np.newaxis]
+            Ys[np.arange(M)[None, :] >= Ls[:, None]] = np.nan
+        elif args.type == "plateau":
+            Ys /= Ys[:, [0]]
+        else:
+            raise NotImplementedError
 
         with ProfileData(args.output, "w").create(M, res, name) as out:
             out.write_profiles(Ys, Ls, names)
