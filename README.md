@@ -17,6 +17,12 @@ Provides:
 - Landmark detection.
 - File I/O and command line API.
 
+## Installation
+
+```
+$ pip install heavyedge
+```
+
 ## Documentation
 
 The manual can be found online:
