@@ -1,4 +1,13 @@
-"""Landmark detection."""
+"""Landmark detection.
+
+.. deprecated:: 1.5
+   This module will be removed in HeavyEdge 2.0.
+   Use `HeavyEdge-Landmarks <heavyedge_landmarks>`_ instead.
+
+.. _heavyedge_landmarks: https://pypi.org/project/heavyedge-landmarks/
+"""
+
+import warnings
 
 import numpy as np
 from scipy.ndimage import gaussian_filter1d
@@ -14,8 +23,32 @@ __all__ = [
 ]
 
 
+def _deprecated(version, replace):
+    removed_version = str(int(version.split(".")[0]) + 1) + ".0"
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            warnings.warn(
+                f"{func.__name__}() is deprecated since HeavyEdge {version} "
+                f"and will be removed in {removed_version}. "
+                f"Use {replace} instead.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+@_deprecated("1.5", "landmarks_type2() in HeavyEdge-Landmarks package")
 def landmarks_type2(Y, sigma):
     """Find landmarks for heavy edge profile without trough.
+
+    .. deprecated:: 1.5
+        This function will be removed in HeavyEdge 2.0,
+        Use :func:`landmarks_type2` in HeavyEdge-Landmarks package instead.
 
     Parameters
     ----------
@@ -59,8 +92,13 @@ def landmarks_type2(Y, sigma):
     return np.array([cp, peak, knee])
 
 
+@_deprecated("1.5", "landmarks_type3() in HeavyEdge-Landmarks package")
 def landmarks_type3(Y, sigma):
     """Find landmarks for heavy edge profile with trough.
+
+    .. deprecated:: 1.5
+        This function will be removed in HeavyEdge 2.0,
+        Use :func:`landmarks_type3` in HeavyEdge-Landmarks package instead.
 
     Parameters
     ----------
@@ -122,8 +160,13 @@ def landmarks_type3(Y, sigma):
     return np.array([cp, peak, trough, knee])
 
 
+@_deprecated("1.5", "plateau_type2() in HeavyEdge-Landmarks package")
 def plateau_type2(x, Y, peak, knee):
     """Find plateau for heavy edge profile without trough.
+
+    .. deprecated:: 1.5
+        This function will be removed in HeavyEdge 2.0,
+        Use :func:`plateau_type2` in HeavyEdge-Landmarks package instead.
 
     Parameters
     ----------
@@ -161,8 +204,13 @@ def plateau_type2(x, Y, peak, knee):
     return (b0, b1, psi)
 
 
+@_deprecated("1.5", "plateau_type3() in HeavyEdge-Landmarks package")
 def plateau_type3(x, Y, trough, knee):
     """Find plateau for heavy edge profile with trough.
+
+    .. deprecated:: 1.5
+        This function will be removed in HeavyEdge 2.0,
+        Use :func:`plateau_type3` in HeavyEdge-Landmarks package instead.
 
     Parameters
     ----------

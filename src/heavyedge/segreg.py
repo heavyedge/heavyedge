@@ -3,6 +3,10 @@ Segmented regression
 --------------------
 
 Broken line regression with two segments.
+
+.. deprecated:: 1.5
+   This module will be removed in HeavyEdge 2.0,
+   as it is no longer required by public API.
 """
 
 import numpy as np
