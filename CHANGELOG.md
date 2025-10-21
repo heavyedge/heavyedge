@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - `landmarks_type2()`, `landmarks_type3()`, `plateau_type2()`, `plateau_type3()` functions are deprecated. Use HeavyEdge-Landmarks package instead.
-
+- `ProfileData.profile_names()` and `ProfileData.all_profiles()` methods are deprecated. Directly iterate or index `ProfileData()` object instead.
 
 ## [1.4.1] - 2025-09-16
 

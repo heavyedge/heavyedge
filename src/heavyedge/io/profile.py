@@ -1,5 +1,7 @@
 """Processed profile data files."""
 
+import warnings
+
 import numbers
 from collections.abc import Sequence
 from pathlib import Path
@@ -10,6 +12,25 @@ import numpy as np
 __all__ = [
     "ProfileData",
 ]
+
+
+def _deprecated(version, replace):
+    removed_version = str(int(version.split(".")[0]) + 1) + ".0"
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            warnings.warn(
+                f"{func.__name__}() is deprecated since HeavyEdge {version} "
+                f"and will be removed in {removed_version}. "
+                f"Use {replace} instead.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 class ProfileData:
@@ -178,8 +199,13 @@ class ProfileData:
         for profile, length in zip(self._file["profiles"], self._file["len"]):
             yield profile[:length]
 
+    @_deprecated("1.5", "__getitem__() method")
     def profile_names(self):
         """Yield profile names.
+
+        .. deprecated:: 1.5
+            This method will be removed in HeavyEdge 2.0.
+            Directly iterate over the object instead.
 
         Yields
         ------
@@ -188,8 +214,13 @@ class ProfileData:
         for name in self._file["names"]:
             yield str(name, encoding="utf-8")
 
+    @_deprecated("1.5", "__getitem__() method")
     def all_profiles(self):
         """Return all profiles.
+
+        .. deprecated:: 1.5
+            This method will be removed in HeavyEdge 2.0.
+            Directly index the object instead.        
 
         Returns
         -------
