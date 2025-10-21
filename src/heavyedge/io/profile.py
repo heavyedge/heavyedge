@@ -1,8 +1,7 @@
 """Processed profile data files."""
 
-import warnings
-
 import numbers
+import warnings
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -220,7 +219,7 @@ class ProfileData:
 
         .. deprecated:: 1.5
             This method will be removed in HeavyEdge 2.0.
-            Directly index the object instead.        
+            Directly index the object instead.
 
         Returns
         -------

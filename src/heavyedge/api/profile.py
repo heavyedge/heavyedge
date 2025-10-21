@@ -9,6 +9,7 @@ from ..wasserstein import wmean
 
 __all__ = [
     "preprocess",
+    "fill_after",
     "outlier",
     "mean",
 ]
@@ -79,6 +80,33 @@ def preprocess(Y, sigma, std_thres):
 
     Y = Y - Y[cp]
     return Y, cp + 1
+
+
+def fill_after(Ys, Ls, fill_value):
+    """Fill arrays with a constant value after specified lengths.
+
+    The input array *Ys* is modified.
+
+    Parameters
+    ----------
+    Ys : (N, M) array
+        Array of N profiles.
+    Ls : (N,) array
+        Length of each profile.
+    fill_value : scalar
+        Value to fill *Ys*.
+
+    Examples
+    --------
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> from heavyedge.api import fill_after
+    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
+    ...     x = data.x()
+    ...     Ys, Ls, _ = data[:]
+    >>> fill_after(Ys, Ls, 0)
+    """
+    _, M = Ys.shape
+    Ys[np.arange(M)[None, :] >= Ls[:, None]] = fill_value
 
 
 def outlier(profiles, thres=3.5):
