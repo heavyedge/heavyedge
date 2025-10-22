@@ -46,12 +46,17 @@ class PrepCommand(Command):
             type=float,
             help="Standard deviation threshold for contact point detection.",
         )
+        prep.add_config_argument(
+            "--fill-value",
+            choices=["0", "nan"],
+            help="Value to fill profile after the contact point.",
+        )
         prep.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
     def run(self, args):
         import numpy as np
 
-        from heavyedge.api import preprocess
+        from heavyedge.api import fill_after, preprocess
         from heavyedge.io import ProfileData
 
         self.logger.info(f"Preprocessing: {args.raw}")
@@ -59,6 +64,9 @@ class PrepCommand(Command):
         raw_type = entry_points(group="heavyedge.rawdata")[args.type].load()
         raw = raw_type(args.raw)
         raw_profiles = zip(raw.profiles(), raw.profile_names())
+
+        if args.fill_value == "0":
+            args.fill_value = 0
 
         # search for the first valid profile
         for profile, name in raw_profiles:
@@ -80,7 +88,10 @@ class PrepCommand(Command):
                 if np.any(np.isnan(profile)):
                     continue
                 Y, L = preprocess(profile, args.sigma, args.std_thres)
-                out.write_profiles(Y.reshape(1, -1), [L], [name])
+                Ys, Ls = Y.reshape(1, -1), np.array([L])
+                if args.fill_value is not None:
+                    fill_after(Ys, Ls, args.fill_value)
+                out.write_profiles(Ys, Ls, [name])
 
         self.logger.info(f"Preprocessed: {out.path}")
 
