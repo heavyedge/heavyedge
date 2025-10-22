@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `heavyedge prep` function now accepts `--fill-value` argument.
 
+### Fixed
+
+- `preprocess()` now ensures that the detected contact point has the lowest height.
+
 ## [1.5.0] - 2025-10-21
 
 ### Added
