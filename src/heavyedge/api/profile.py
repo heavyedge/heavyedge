@@ -77,13 +77,12 @@ def preprocess(Y, sigma, std_thres):
         cp = peaks[candidates[np.argmax(h_xx[peaks[candidates]])]]
     else:
         cp = len(Y) - 1
-    L = cp + 1
 
     # If any point before cp is lower than the detected contact point,
     # set that as contact point instead.
-    cp = np.argmin(Y[:L])
+    cp = np.argmin(Y[: cp + 1])
     Y = Y - Y[cp]
-    return Y, L
+    return Y, cp + 1
 
 
 def fill_after(Ys, Ls, fill_value):
