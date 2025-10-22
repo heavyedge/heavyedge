@@ -51,6 +51,11 @@ class PrepCommand(Command):
             choices=["0", "nan"],
             help="Value to fill profile after the contact point.",
         )
+        prep.add_config_argument(
+            "--batch-size",
+            type=int,
+            help="Batch size to load data. If not provided, load entire profiles.",
+        )
         prep.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
     def run(self, args):
@@ -58,6 +63,15 @@ class PrepCommand(Command):
 
         from heavyedge.api import fill_after, preprocess
         from heavyedge.io import ProfileData
+
+        def is_invalid(profile):
+            return (len(profile) == 0) or np.any(np.isnan(profile))
+
+        def save_batch(Ys, Ls, names, fill_value, outfile):
+            Ys, Ls = np.array(Ys), np.array(Ls)
+            if fill_value is not None:
+                fill_after(Ys, Ls, fill_value)
+            outfile.write_profiles(Ys, Ls, names)
 
         self.logger.info(f"Preprocessing: {args.raw}")
 
@@ -68,30 +82,36 @@ class PrepCommand(Command):
         if args.fill_value == "0":
             args.fill_value = 0
 
-        # search for the first valid profile
+        # search for the first valid profile to determine M
         for profile, name in raw_profiles:
-            if len(profile) == 0:
-                continue
-            if np.any(np.isnan(profile)):
+            if is_invalid(profile):
                 continue
             M = len(profile)
             break
+        else:
+            raise ValueError(f"No valid profile in {args.raw}.")
+        Y, L = preprocess(profile, args.sigma, args.std_thres)
+        Ys, Ls, names = [Y], [L], [name]
+        count = 1
 
         with ProfileData(args.output, "w").create(M, args.res, args.name) as out:
-            # write the first valid profile
-            Y, L = preprocess(profile, args.sigma, args.std_thres)
-            out.write_profiles(Y.reshape(1, -1), [L], [name])
-
+            # iterate over the remaining profiles
             for profile, name in raw_profiles:
-                if len(profile) == 0:
-                    continue
-                if np.any(np.isnan(profile)):
+                if is_invalid(profile):
                     continue
                 Y, L = preprocess(profile, args.sigma, args.std_thres)
-                Ys, Ls = Y.reshape(1, -1), np.array([L])
-                if args.fill_value is not None:
-                    fill_after(Ys, Ls, args.fill_value)
-                out.write_profiles(Ys, Ls, [name])
+                Ys.append(Y)
+                Ls.append(L)
+                names.append(name)
+                count += 1
+
+                if count == args.batch_size:
+                    save_batch(Ys, Ls, names, args.fill_value, out)
+                    Ys, Ls, names = [], [], []
+                    count = 0
+
+            # save remaining batch
+            save_batch(Ys, Ls, names, args.fill_value, out)
 
         self.logger.info(f"Preprocessed: {out.path}")
 
