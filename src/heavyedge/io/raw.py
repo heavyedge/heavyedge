@@ -3,6 +3,7 @@
 import abc
 import csv
 import numbers
+import warnings
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -12,6 +13,25 @@ __all__ = [
     "RawProfileBase",
     "RawProfileCsvs",
 ]
+
+
+def _deprecated(version, replace):
+    removed_version = str(int(version.split(".")[0]) + 1) + ".0"
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            warnings.warn(
+                f"{func.__name__}() is deprecated since HeavyEdge {version} "
+                f"and will be removed in {removed_version}. "
+                f"Use {replace} instead.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 class RawProfileBase(abc.ABC):
@@ -56,8 +76,13 @@ class RawProfileBase(abc.ABC):
         1-D ndarray
         """
 
+    @_deprecated("1.5", "profiles() method")
     def all_profiles(self):
         """Return all profiles as an 2-D array.
+
+        .. deprecated:: 1.5
+            This method will be removed in HeavyEdge 2.0.
+            Directly iterate over the generator from profiles() method
 
         Returns
         -------
@@ -101,7 +126,7 @@ class RawProfileCsvs(RawProfileBase):
     Examples
     --------
     >>> from heavyedge import get_sample_path, RawProfileCsvs
-    >>> profiles = RawProfileCsvs(get_sample_path("Type3")).all_profiles()
+    >>> profiles = RawProfileCsvs(get_sample_path("Type3")).profiles()
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... for Y in profiles:
     ...     plt.plot(Y)
