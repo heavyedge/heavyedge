@@ -14,7 +14,6 @@ Basic package for heavy edge coating profile analysis.
 Provides:
 
 - Profile preprocessing and averaging.
-- Landmark detection.
 - File I/O and command line API.
 
 ## Installation
