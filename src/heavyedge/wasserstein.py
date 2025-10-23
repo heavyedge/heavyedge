@@ -11,7 +11,7 @@ import numpy as np
 from scipy.integrate import cumulative_trapezoid
 from scipy.interpolate import interp1d
 
-from ._wasserstein import optimize_q
+from ._wasserstein import _optimize_q, _quantile
 
 __all__ = [
     "quantile",
@@ -39,36 +39,44 @@ def _deprecated(version, replace):
     return decorator
 
 
-def quantile(x, f, t):
-    """Convert a probability distribution to a quantile function.
+def quantile(x, fs, Ls, t):
+    """Convert probability distributions to quantile functions.
 
     Parameters
     ----------
-    x : ndarray
-        Points over which *f* is measured.
-    f : ndarray
-        The empirical probability density function.
-    t : ndarray
+    x : (M1,) ndarray
+        Coordinates of grids over which *fs* are measured.
+    fs : (N, M1) ndarray
+        Empirical probability density functions.
+    Ls : (N,) ndarray
+        Length of supports of each *fs*.
+    t : (M2,) ndarray
         Points over which the quantile function will be measured.
         Must be strictly increasing from 0 to 1.
 
     Returns
     -------
-    ndarray
-        Quantile function of *f* over *t*.
+    (N, M2) ndarray
+        Quantile functions* over *t*.
 
     Examples
     --------
     >>> import numpy as np
     >>> from heavyedge import get_sample_path, ProfileData
-    >>> from heavyedge.wasserstein import quantile
+    >>> from heavyedge_distance.api import scale_area
+    >>> from heavyedge_distance.wasserstein import quantile
     >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
-    ...     Y = next(data.profiles())
-    ...     x = data.x()[:len(Y)]
-    >>> f = Y / np.trapezoid(Y, x)
+    ...     x = data.x()
+    ...     Ys, Ls, _ = data[:]
+    ...     fs = scale_area(x, Ys)
     >>> t = np.linspace(0, 1, 100)
-    >>> Q = quantile(x[:len(f)], f, t)
+    >>> Qs = quantile(x, fs, Ls, t)
     """
+    Gs = cumulative_trapezoid(fs, x, initial=0, axis=-1)
+    return _quantile(x, Gs, Ls.astype(np.int32), t)
+
+
+def _quantile_old(x, f, t):
     G = cumulative_trapezoid(f, x, initial=0)
     return interp1d(G, x, bounds_error=False, fill_value=(x[0], x[-1]))(t)
 
@@ -102,27 +110,30 @@ def wdist(x1, f1, x2, f2, grid_num):
         Wasserstein distance.
     """
     grid = np.linspace(0, 1, grid_num)
-    Q1 = quantile(x1, f1, grid)
-    Q2 = quantile(x2, f2, grid)
+    Q1 = _quantile_old(x1, f1, grid)
+    Q2 = _quantile_old(x2, f2, grid)
     return np.trapezoid((Q1 - Q2) ** 2, grid) ** 0.5
 
 
-def wmean(xs, fs, grid_num):
+def wmean(x, fs, Ls, t):
     """Fréchet mean of probability distrubutions using Wasserstein metric.
 
     Parameters
     ----------
-    xs : list of ndarray
-        Points over which each distribution in *fs* is measured.
-    fs : list of ndarray
+    x : (M1,) ndarray
+        Coordinates of grids over which *fs* are measured.
+    fs : (N, M1) ndarray
         Empirical probability density functions.
-    grid_num : int
-        Number of sample points in [0, 1] to approximate the integral.
+    Ls : (N,) ndarray
+        Length of supports of each *fs*.
+    t : (M2,) ndarray
+        Points over which the quantile function will be measured.
+        Must be strictly increasing from 0 to 1.
 
     Returns
     -------
-    x, f : ndarray
-        Probability density function.
+    f_mean : ndarray
+        Fréchet mean of *fs* over *x*.
 
     Examples
     --------
@@ -131,23 +142,33 @@ def wmean(xs, fs, grid_num):
     >>> from heavyedge.wasserstein import wmean
     >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
     ...     x = data.x()
-    ...     (Y1, Y2), (L1, L2), _ = data[:2]
-    >>> x1, Y1 = x[:L1], Y1[:L1]
-    >>> x2, Y2 = x[:L2] + 3, Y2[:L2]
-    >>> f1, f2 = Y1 / np.trapezoid(Y1, x1), Y2 / np.trapezoid(Y2, x2)
-    >>> x, f = wmean([x1, x2], [f1, f2], 100)
+    ...     Ys, Ls, _ = data[:]
+    >>> fs = Ys / np.trapezoid(Ys, x, axis=-1)[:, np.newaxis]
+    >>> f_mean = wmean(x, fs, Ls, np.linspace(0, 1, 100))
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
-    ... plt.plot(x1, f1, "--", color="gray")
-    ... plt.plot(x2, f2, "--", color="gray")
-    ... plt.plot(x, f)
+    ... plt.plot(x, fs.T, "--", color="gray")
+    ... plt.plot(x, f_mean)
     """
+    Qs = quantile(x, fs, Ls, t)
+    g = np.mean(Qs, axis=0)
+    if np.all(np.diff(g) >= 0):
+        q = g
+    else:
+        q = _optimize_q(g)
+    pdf = 1 / np.gradient(q, t)
+    pdf[-1] = 0
+    pdf /= np.trapezoid(pdf, q)
+    return np.interp(x, q, pdf, left=pdf[0], right=pdf[-1])
+
+
+def _wmean_old(xs, fs, grid_num):
     grid = np.linspace(0, 1, grid_num)
-    Q = np.array([quantile(x, f, grid) for x, f in zip(xs, fs)])
+    Q = np.array([_quantile_old(x, f, grid) for x, f in zip(xs, fs)])
     g = np.mean(Q, axis=0)
     if np.all(np.diff(g) >= 0):
         q = g
     else:
-        q = optimize_q(g)
+        q = _optimize_q(g)
     pdf = 1 / np.gradient(q, grid)
     pdf[-1] = 0
     pdf /= np.trapezoid(pdf, q)

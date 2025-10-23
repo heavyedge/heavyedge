@@ -15,10 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `preprocess()` now ensures that the detected contact point has the lowest height.
 
+### Changed
+
+- `wasserstein.quantile()` function now takes multiple PDFs and their lengths.
+- `wasserstein.wmean()` function now takes a single x, multiple PDFs and their lengths, and pre-defined grid.
+
 ### Deprecated
 
 - `RawProfileBase.all_profiles()` method is deprecated. Directly iterate `profiles()` method instead.
-- `wdist()` function is deprecated. Use HeavyEdge-Distance package instead.
+- `wasserstein.wdist()` function is deprecated. Use HeavyEdge-Distance package instead.
 
 ## [1.5.0] - 2025-10-21
 

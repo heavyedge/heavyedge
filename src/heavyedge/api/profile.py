@@ -5,7 +5,7 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
 from scipy.stats import linregress
 
-from ..wasserstein import wmean
+from ..wasserstein import _wmean_old
 
 __all__ = [
     "preprocess",
@@ -195,7 +195,7 @@ def mean(x, profiles, grid_num):
         xs.append(x_)
         areas.append(A)
         pdfs.append(prof / A)
-    X, F = wmean(xs, pdfs, grid_num)
+    X, F = _wmean_old(xs, pdfs, grid_num)
     # Fix the last point of X to grid
     last_idx = np.argmin(np.abs(x - X[-1]))
     X[-1] = x[last_idx]
