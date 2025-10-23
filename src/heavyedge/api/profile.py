@@ -1,5 +1,7 @@
 """Profile preprocessing."""
 
+import warnings
+
 import numpy as np
 from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
@@ -13,6 +15,25 @@ __all__ = [
     "outlier",
     "mean",
 ]
+
+
+def _deprecated(version, replace):
+    removed_version = str(int(version.split(".")[0]) + 1) + ".0"
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            warnings.warn(
+                f"{func.__name__}() is deprecated since HeavyEdge {version} "
+                f"and will be removed in {removed_version}. "
+                f"Use {replace} instead.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 def preprocess(Y, sigma, std_thres):
@@ -158,6 +179,7 @@ def outlier(profiles, thres=3.5):
     return np.abs(mod_z) > thres
 
 
+@_deprecated("1.6", "heavyedge.api.mean module")
 def mean(x, profiles, grid_num):
     """Fréchet mean of profiles using Wasserstein distance.
 

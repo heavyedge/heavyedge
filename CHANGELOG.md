@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `heavyedge prep` function now accepts `--fill-value` argument.
+- `heavyedge prep` command now accepts `--fill-value` argument.
+- `api.mean_euclidean()` and `api.mean_wasserstein()` functions are added.
 
 ### Fixed
 
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `RawProfileBase.all_profiles()` method is deprecated. Directly iterate `profiles()` method instead.
 - `wasserstein.wdist()` function is deprecated. Use HeavyEdge-Distance package instead.
+- `api.mean()` function is deprecated. Use functions in `api.mean` module instead.
 
 ## [1.5.0] - 2025-10-21
 
