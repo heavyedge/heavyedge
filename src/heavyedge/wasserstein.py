@@ -151,6 +151,10 @@ def wmean(x, fs, Ls, t):
     """
     Qs = quantile(x, fs, Ls, t)
     g = np.mean(Qs, axis=0)
+    return _wmean(x, t, g)
+
+
+def _wmean(x, t, g):
     if np.all(np.diff(g) >= 0):
         q = g
     else:
