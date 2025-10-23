@@ -5,6 +5,8 @@ Wasserstein distance
 Wasserstein-related functions.
 """
 
+import warnings
+
 import numpy as np
 from scipy.integrate import cumulative_trapezoid
 from scipy.interpolate import interp1d
@@ -16,6 +18,25 @@ __all__ = [
     "wdist",
     "wmean",
 ]
+
+
+def _deprecated(version, replace):
+    removed_version = str(int(version.split(".")[0]) + 1) + ".0"
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            warnings.warn(
+                f"{func.__name__}() is deprecated since HeavyEdge {version} "
+                f"and will be removed in {removed_version}. "
+                f"Use {replace} instead.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 def quantile(x, f, t):
@@ -52,8 +73,13 @@ def quantile(x, f, t):
     return interp1d(G, x, bounds_error=False, fill_value=(x[0], x[-1]))(t)
 
 
+@_deprecated("1.6", "HeavyEdge-Distance package")
 def wdist(x1, f1, x2, f2, grid_num):
     r"""Wasserstein distance between two 1D probability distributions.
+
+    .. deprecated:: 1.6
+        This function will be removed in HeavyEdge 2.0.
+        Use HeavyEdge-Distance package instead.
 
     .. math::
 
@@ -74,19 +100,6 @@ def wdist(x1, f1, x2, f2, grid_num):
     -------
     scalar
         Wasserstein distance.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from heavyedge import get_sample_path, ProfileData
-    >>> from heavyedge.wasserstein import wdist
-    >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
-    ...     x = data.x()
-    ...     (Y1, Y2), (L1, L2), _ = data[:2]
-    >>> x1, Y1 = x[:L1], Y1[:L1]
-    >>> x2, Y2 = x[:L2], Y2[:L2]
-    >>> f1, f2 = Y1 / np.trapezoid(Y1, x1), Y2 / np.trapezoid(Y2, x2)
-    >>> d = wdist(x1, f1, x2, f2, 100)
     """
     grid = np.linspace(0, 1, grid_num)
     Q1 = quantile(x1, f1, grid)
