@@ -4,7 +4,7 @@ import pathlib
 
 from heavyedge.cli.command import Command, register_command
 
-PLUGIN_ORDER = 1.0
+PLUGIN_ORDER = 0.2
 
 
 @register_command("scale", "Scale edge profiles")

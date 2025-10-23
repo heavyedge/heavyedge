@@ -83,4 +83,5 @@ csvs = "heavyedge:io.RawProfileCsvs"
 
 [project.entry-points."heavyedge.commands"]
 "Profile processing" = "heavyedge.plugins.profile"
+"Profile averaging" = "heavyedge.plugins.mean"
 "Edge manipulation" = "heavyedge.plugins.edge"
