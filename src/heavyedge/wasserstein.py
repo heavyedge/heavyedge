@@ -63,12 +63,11 @@ def quantile(x, fs, Ls, t):
     --------
     >>> import numpy as np
     >>> from heavyedge import get_sample_path, ProfileData
-    >>> from heavyedge_distance.api import scale_area
-    >>> from heavyedge_distance.wasserstein import quantile
+    >>> from heavyedge.wasserstein import quantile
     >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
     ...     x = data.x()
     ...     Ys, Ls, _ = data[:]
-    ...     fs = scale_area(x, Ys)
+    >>> fs = Ys / np.trapezoid(Ys, x, axis=-1)[:, np.newaxis]
     >>> t = np.linspace(0, 1, 100)
     >>> Qs = quantile(x, fs, Ls, t)
     """
