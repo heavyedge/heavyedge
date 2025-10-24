@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `heavyedge prep` command now accepts `--fill-value` argument.
+- `heavyedge prep` command now accepts `--z-thres` argument for outlier detection.
 - `heavyedge merge` command now accepts `--batch-size` argument.
 - `heavyedge mean` command now accepts `--batch-size` argument.
 - `api.mean_euclidean()` and `api.mean_wasserstein()` functions are added.
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `wasserstein.wmean()` function now takes a single x, multiple PDFs and their lengths, and pre-defined grid.
 - `wasserstein.wmean()` function now returns function interpolated over input `x`, and the length of its support.
 - `api.mean_wasserstein()` function now returns function interpolated over input `x`, and the length of its support.
+- `api.outlier` now takes scalar values instead of profiles.
 
 ### Deprecated
 

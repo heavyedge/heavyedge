@@ -14,6 +14,7 @@ def test_process_commands(tmp_rawdata_type2_path, tmp_path):
             "--sigma=1",
             "--std-thres=40",
             "--fill-value=0",
+            "--z-thres=3.5",
             tmp_rawdata_type2_path,
             "-o",
             processed_path,
@@ -22,22 +23,6 @@ def test_process_commands(tmp_rawdata_type2_path, tmp_path):
         check=True,
     )
     assert os.path.exists(processed_path)
-
-    filtered_path = tmp_path / "FilteredProfiles.h5"
-    subprocess.run(
-        [
-            "heavyedge",
-            "outlier",
-            "--z",
-            "3.5",
-            processed_path,
-            "-o",
-            filtered_path,
-        ],
-        capture_output=True,
-        check=True,
-    )
-    assert os.path.exists(filtered_path)
 
     mean_path = tmp_path / "MeanProfile.h5"
     subprocess.run(

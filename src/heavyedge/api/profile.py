@@ -133,13 +133,13 @@ def fill_after(Ys, Ls, fill_value):
     Ys[np.arange(M)[None, :] >= Ls[:, None]] = fill_value
 
 
-def outlier(profiles, thres=3.5):
-    """Detect outlier profiles.
+def outlier(values, thres=3.5):
+    """Detect outlier from scalar values.
 
     Parameters
     ----------
-    profiles : iterable of array
-        Profile data, with last point being the contact point.
+    x : array of scalar
+        Target data.
     thres : scalar, default=3.5
         Z-score threshold for outlier detection.
 
@@ -150,8 +150,7 @@ def outlier(profiles, thres=3.5):
 
     Notes
     -----
-    Outliers are detected by applying modified Z-score method [1]_ on cross-sectional
-    areas.
+    Outliers are detected by applying modified Z-score method [1]_ on *x*.
 
     References
     ----------
@@ -160,22 +159,24 @@ def outlier(profiles, thres=3.5):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import outlier
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
-    ...     profiles = list(data.profiles())
-    ...     is_outlier = outlier(profiles, 1.5)
+    ...     x = data.x()
+    ...     Ys, _, _ = data[:]
+    ...     areas = np.trapezoid(Ys, x, axis=-1)
+    >>> is_outlier = outlier(areas, 1.5)
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
-    ... for profile, skip in zip(profiles, is_outlier):
+    ... for Y, skip in zip(Ys, is_outlier):
     ...     if skip:
-    ...         plt.plot(profile, color="red")
+    ...         plt.plot(Y, color="red")
     ...     else:
-    ...         plt.plot(profile, alpha=0.2, color="gray")
+    ...         plt.plot(Y, alpha=0.2, color="gray")
     """
-    x = np.array([np.sum(p) for p in profiles])
-    med = np.median(x)
-    mad = np.median(np.abs(x - med))
-    mod_z = 0.6745 * (x - med) / mad
+    med = np.median(values)
+    mad = np.median(np.abs(values - med))
+    mod_z = 0.6745 * (values - med) / mad
     return np.abs(mod_z) > thres
 
 

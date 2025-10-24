@@ -3,6 +3,8 @@
 import pathlib
 from importlib.metadata import entry_points
 
+import numpy as np
+
 from heavyedge.cli.command import Command, register_command
 
 PLUGIN_ORDER = 0.0
@@ -52,6 +54,14 @@ class PrepCommand(Command):
             help="Value to fill profile after the contact point.",
         )
         prep.add_config_argument(
+            "--z-thres",
+            type=float,
+            help=(
+                "Modified Z-score threshold for outlier detection. "
+                "If not passed, outliers are not detected."
+            ),
+        )
+        prep.add_config_argument(
             "--batch-size",
             type=int,
             help="Batch size to load data. If not provided, load entire profiles.",
@@ -59,13 +69,8 @@ class PrepCommand(Command):
         prep.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
     def run(self, args):
-        import numpy as np
-
-        from heavyedge.api import fill_after, preprocess
+        from heavyedge.api import fill_after, outlier, preprocess
         from heavyedge.io import ProfileData
-
-        def is_invalid(profile):
-            return (len(profile) == 0) or np.any(np.isnan(profile))
 
         def save_batch(Ys, Ls, names, fill_value, outfile):
             Ys, Ls = np.array(Ys), np.array(Ls)
@@ -84,37 +89,86 @@ class PrepCommand(Command):
         # search for the first valid profile to determine M
         for i in range(len(raw)):
             profile, name = raw[i]
-            if is_invalid(profile):
+            if self.is_invalid(profile):
                 continue
             M = len(profile)
             break
         else:
             raise ValueError(f"No valid profile in {args.raw}.")
         Y, L = preprocess(profile, args.sigma, args.std_thres)
-        Ys, Ls, names = [Y], [L], [name]
-        count = 1
 
-        with ProfileData(args.output, "w").create(M, args.res, args.name) as out:
-            # iterate over the remaining profiles
+        # check for outliers
+        if args.z_thres is not None:
+            idxs = [i]
+            Ls = [L]
+            sums = [np.sum(Y[:L])]
             for j in range(i + 1, len(raw)):
                 profile, name = raw[j]
-                if is_invalid(profile):
+                if self.is_invalid(profile):
                     continue
                 Y, L = preprocess(profile, args.sigma, args.std_thres)
-                Ys.append(Y)
+                idxs.append(j)
                 Ls.append(L)
-                names.append(name)
-                count += 1
+                sums.append(np.sum(Y[:L]))
+            sums = np.array(sums)
+            is_outlier = outlier(sums, args.z_thres)
+            idxs = np.array(idxs)[~is_outlier]
 
-                if count == args.batch_size:
-                    save_batch(Ys, Ls, names, args.fill_value, out)
-                    Ys, Ls, names = [], [], []
-                    count = 0
+            # Ls are already found. Use it for efficient preprocessing.
+            with ProfileData(args.output, "w").create(M, args.res, args.name) as out:
+                count = 0
+                Ys_batch = []
+                Ls_batch = []
+                names_batch = []
+                for j, L in zip(idxs, Ls):
+                    Y, name = raw[j]
+                    if Y[0] < Y[-1]:
+                        Y = np.flip(Y)
+                    Ys_batch.append(Y - Y[L - 1])
+                    Ls_batch.append(L)
+                    names_batch.append(name)
+                    count += 1
 
-            # save remaining batch
-            save_batch(Ys, Ls, names, args.fill_value, out)
+                    if count == args.batch_size:
+                        save_batch(
+                            Ys_batch, Ls_batch, names_batch, args.fill_value, out
+                        )
+                        Ys_batch, Ls_batch, names_batch = [], [], []
+                        count = 0
+
+                # save remaining batch
+                save_batch(Ys_batch, Ls_batch, names_batch, args.fill_value, out)
+
+        # Do not check outlier
+        else:
+            Ys, Ls, names = [Y], [L], [name]
+            count = 1
+
+            with ProfileData(args.output, "w").create(M, args.res, args.name) as out:
+                # iterate over the remaining profiles
+                for j in range(i + 1, len(raw)):
+                    profile, name = raw[j]
+                    if self.is_invalid(profile):
+                        continue
+                    Y, L = preprocess(profile, args.sigma, args.std_thres)
+                    Ys.append(Y)
+                    Ls.append(L)
+                    names.append(name)
+                    count += 1
+
+                    if count == args.batch_size:
+                        save_batch(Ys, Ls, names, args.fill_value, out)
+                        Ys, Ls, names = [], [], []
+                        count = 0
+
+                # save remaining batch
+                save_batch(Ys, Ls, names, args.fill_value, out)
 
         self.logger.info(f"Preprocessed: {out.path}")
+
+    @staticmethod
+    def is_invalid(profile):
+        return (len(profile) == 0) or np.any(np.isnan(profile))
 
 
 @register_command("outlier", "Filter outlier profiles")
@@ -149,7 +203,13 @@ class OutlierCommand(Command):
             _, M = data.shape()
             res = data.resolution()
             name = data.name()
-            is_outlier = outlier(data.profiles(), args.z)
+
+            x = data.x()
+            areas = []
+            for i in range(len(data)):
+                Y, L, _ = data[i]
+                areas.append(np.trapezoid(Y[:L], x[:L]))
+            is_outlier = outlier(np.array(areas), args.z)
 
             with ProfileData(args.output, "w").create(M, res, name) as out:
                 for skip, Y, L, name in zip(
@@ -232,8 +292,6 @@ class FilterCommand(Command):
         )
 
     def run(self, args):
-        import numpy as np
-
         from heavyedge.io import ProfileData
 
         index = np.load(args.index)
