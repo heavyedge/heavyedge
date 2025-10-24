@@ -29,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `wasserstein.wmean()` function now takes a single x, multiple PDFs and their lengths, and pre-defined grid.
 - `wasserstein.wmean()` function now returns function interpolated over input `x`, and the length of its support.
 - `api.mean_wasserstein()` function now returns function interpolated over input `x`, and the length of its support.
-- `api.outlier` now takes scalar values instead of profiles.
 - `scale` command now no loger fills data outside the contact point with `nan`.
 - `trim` command and `pad` command now no longer fills data outside the contact point with `nan`.
 Instead, they result data whose length of the second axis different from the original data. 
@@ -41,8 +40,11 @@ Instead, they result data whose length of the second axis different from the ori
 - `RawProfileBase.all_profiles()` method is deprecated. Implement `__getitem__()` and directly index the object instead.
 - `RawProfileBase.profile_names()` method is deprecated. Implement `__getitem__()` and directly index the object instead.
 - `wasserstein.wdist()` function is deprecated. Use HeavyEdge-Distance package instead.
-- `api.mean()` function is deprecated. Use functions in `api.mean` module instead.
 - `outlier` command is deprecated. Filter in `prep` command instead.
+- `api.preprocess()` function is deprecated. Use `profile.preprocess()` function instead.
+- `api.fill_after()` function is deprecated. Use `profile.fill_after()` function instead.
+- `api.outlierr()` function is deprecated. Use outlier detection in preprocessing step instead.
+- `api.mean()` function is deprecated. Use functions in `api.mean` module instead.
 
 ## [1.5.0] - 2025-10-21
 
