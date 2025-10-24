@@ -1,4 +1,9 @@
-"""Profile preprocessing."""
+"""Profile preprocessing.
+
+.. deprecated:: 1.6
+   This module will be removed in HeavyEdge 2.0.
+   Use :mod:`heavyedge.api.preprocess` and :mod:`heavyedge.profile` instead.
+"""
 
 import warnings
 
@@ -36,8 +41,13 @@ def _deprecated(version, replace):
     return decorator
 
 
+@_deprecated("1.6", "heavyedge.profile.preprocess function")
 def preprocess(Y, sigma, std_thres):
     """Preprocess raw profile data.
+
+    .. deprecated:: 1.6
+        This function will be removed in HeavyEdge 2.0,
+        Use :func:`heavyedge.profile.preprocess` instead.
 
     Parameters
     ----------
@@ -106,10 +116,15 @@ def preprocess(Y, sigma, std_thres):
     return Y, cp + 1
 
 
+@_deprecated("1.6", "heavyedge.profile.fill_after function")
 def fill_after(Ys, Ls, fill_value):
     """Fill arrays with a constant value after specified lengths.
 
     The input array *Ys* is modified.
+
+    .. deprecated:: 1.6
+        This function will be removed in HeavyEdge 2.0,
+        Use :func:`heavyedge.profile.fill_after` instead.
 
     Parameters
     ----------
@@ -133,13 +148,18 @@ def fill_after(Ys, Ls, fill_value):
     Ys[np.arange(M)[None, :] >= Ls[:, None]] = fill_value
 
 
-def outlier(values, thres=3.5):
-    """Detect outlier from scalar values.
+@_deprecated("1.6", "outlier detection in preprocessing step")
+def outlier(profiles, thres=3.5):
+    """Detect outlier profiles.
+
+    .. deprecated:: 1.6
+        This function will be removed in HeavyEdge 2.0,
+        Use outlier detection in preprocessing step instead.
 
     Parameters
     ----------
-    x : array of scalar
-        Target data.
+    profiles : iterable of array
+        Profile data, with last point being the contact point.
     thres : scalar, default=3.5
         Z-score threshold for outlier detection.
 
@@ -150,7 +170,8 @@ def outlier(values, thres=3.5):
 
     Notes
     -----
-    Outliers are detected by applying modified Z-score method [1]_ on *x*.
+    Outliers are detected by applying modified Z-score method [1]_ on cross-sectional
+    areas.
 
     References
     ----------
@@ -159,30 +180,32 @@ def outlier(values, thres=3.5):
 
     Examples
     --------
-    >>> import numpy as np
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import outlier
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
-    ...     x = data.x()
-    ...     Ys, _, _ = data[:]
-    ...     areas = np.trapezoid(Ys, x, axis=-1)
-    >>> is_outlier = outlier(areas, 1.5)
+    ...     profiles = list(data.profiles())
+    ...     is_outlier = outlier(profiles, 1.5)
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
-    ... for Y, skip in zip(Ys, is_outlier):
+    ... for profile, skip in zip(profiles, is_outlier):
     ...     if skip:
-    ...         plt.plot(Y, color="red")
+    ...         plt.plot(profile, color="red")
     ...     else:
-    ...         plt.plot(Y, alpha=0.2, color="gray")
+    ...         plt.plot(profile, alpha=0.2, color="gray")
     """
-    med = np.median(values)
-    mad = np.median(np.abs(values - med))
-    mod_z = 0.6745 * (values - med) / mad
+    x = np.array([np.sum(p) for p in profiles])
+    med = np.median(x)
+    mad = np.median(np.abs(x - med))
+    mod_z = 0.6745 * (x - med) / mad
     return np.abs(mod_z) > thres
 
 
 @_deprecated("1.6", "heavyedge.api.mean module")
 def mean(x, profiles, grid_num):
     """Fréchet mean of profiles using Wasserstein distance.
+
+    .. deprecated:: 1.6
+        This function will be removed in HeavyEdge 2.0,
+        Use :mod:`heavyedge.api.mean` instead.
 
     Parameters
     ----------

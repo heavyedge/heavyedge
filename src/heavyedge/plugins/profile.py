@@ -69,14 +69,8 @@ class PrepCommand(Command):
         prep.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
     def run(self, args):
-        from heavyedge.api import fill_after, outlier, preprocess
+        from heavyedge.api import prep
         from heavyedge.io import ProfileData
-
-        def save_batch(Ys, Ls, names, fill_value, outfile):
-            Ys, Ls = np.array(Ys), np.array(Ls)
-            if fill_value is not None:
-                fill_after(Ys, Ls, fill_value)
-            outfile.write_profiles(Ys, Ls, names)
 
         self.logger.info(f"Writing {args.output}")
 
@@ -86,83 +80,23 @@ class PrepCommand(Command):
         if args.fill_value == "0":
             args.fill_value = 0
 
-        # search for the first valid profile to determine M
-        for i in range(len(raw)):
-            profile, name = raw[i]
-            if self.is_invalid(profile):
-                continue
-            M = len(profile)
-            break
-        else:
-            raise ValueError(f"No valid profile in {args.raw}.")
-        Y, L = preprocess(profile, args.sigma, args.std_thres)
+        gen = prep(
+            raw,
+            args.sigma,
+            args.std_thres,
+            args.fill_value,
+            args.z_thres,
+            args.batch_size,
+            lambda msg: self.logger.info(f"{args.output} : {msg}"),
+        )
 
-        # check for outliers
-        if args.z_thres is not None:
-            idxs = [i]
-            Ls = [L]
-            sums = [np.sum(Y[:L])]
-            for j in range(i + 1, len(raw)):
-                profile, name = raw[j]
-                if self.is_invalid(profile):
-                    continue
-                Y, L = preprocess(profile, args.sigma, args.std_thres)
-                idxs.append(j)
-                Ls.append(L)
-                sums.append(np.sum(Y[:L]))
-            sums = np.array(sums)
-            is_outlier = outlier(sums, args.z_thres)
-            idxs = np.array(idxs)[~is_outlier]
-
-            # Ls are already found. Use it for efficient preprocessing.
-            with ProfileData(args.output, "w").create(M, args.res, args.name) as out:
-                count = 0
-                Ys_batch = []
-                Ls_batch = []
-                names_batch = []
-                for j, L in zip(idxs, Ls):
-                    Y, name = raw[j]
-                    if Y[0] < Y[-1]:
-                        Y = np.flip(Y)
-                    Ys_batch.append(Y - Y[L - 1])
-                    Ls_batch.append(L)
-                    names_batch.append(name)
-                    count += 1
-
-                    if count == args.batch_size:
-                        save_batch(
-                            Ys_batch, Ls_batch, names_batch, args.fill_value, out
-                        )
-                        Ys_batch, Ls_batch, names_batch = [], [], []
-                        count = 0
-
-                # save remaining batch
-                save_batch(Ys_batch, Ls_batch, names_batch, args.fill_value, out)
-
-        # Do not check outlier
-        else:
-            Ys, Ls, names = [Y], [L], [name]
-            count = 1
-
-            with ProfileData(args.output, "w").create(M, args.res, args.name) as out:
-                # iterate over the remaining profiles
-                for j in range(i + 1, len(raw)):
-                    profile, name = raw[j]
-                    if self.is_invalid(profile):
-                        continue
-                    Y, L = preprocess(profile, args.sigma, args.std_thres)
-                    Ys.append(Y)
-                    Ls.append(L)
-                    names.append(name)
-                    count += 1
-
-                    if count == args.batch_size:
-                        save_batch(Ys, Ls, names, args.fill_value, out)
-                        Ys, Ls, names = [], [], []
-                        count = 0
-
-                # save remaining batch
-                save_batch(Ys, Ls, names, args.fill_value, out)
+        # Get first result to determine M
+        Ys, Ls, names = next(gen)
+        M = len(Ys[0])
+        with ProfileData(args.output, "w").create(M, args.res, args.name) as out:
+            out.write_profiles(Ys, Ls, names)
+            for Ys, Ls, names in gen:
+                out.write_profiles(Ys, Ls, names)
 
         self.logger.info(f"Saved {out.path}")
 
