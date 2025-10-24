@@ -104,17 +104,15 @@ class TrimCommand(Command):
 
             Ls = file._file["len"][:]
             if args.width is None:
-                width = Ls.min()
-            else:
-                width = int(args.width * res)
+                args.width = Ls.min() / res
 
             with ProfileData(args.output, "w").create(
-                width + (M - Ls).min(), res, name
+                int(args.width * res) + (M - Ls).min(), res, name
             ) as out:
 
                 for trimmed, Ls, names in trim(
                     file,
-                    width,
+                    args.width,
                     args.batch_size,
                     lambda msg: self.logger.info(f"{out.path} : {msg}"),
                 ):
@@ -144,37 +142,38 @@ class PadCommand(Command):
             type=float,
             help="Edge width. If not passed, length of the shortest profile.",
         )
+        pad.add_argument(
+            "--batch-size",
+            type=int,
+            help="Batch size to load data. If not provided, loads entire profiles.",
+        )
         pad.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
     def run(self, args):
-        import numpy as np
-
+        from heavyedge.api import pad
         from heavyedge.io import ProfileData
 
-        self.logger.info(f"Padding profiles: {args.profiles}")
+        self.logger.info(f"Writing {args.output}")
 
-        with ProfileData(args.profiles) as data:
-            _, M = data.shape()
-            res = data.resolution()
-            name = data.name()
+        with ProfileData(args.profiles) as file:
+            _, M = file.shape()
+            res = file.resolution()
+            name = file.name()
 
-            Ys, Ls, names = data[:]
-
+            Ls = file._file["len"][:]
             if args.width is None:
-                w = Ls.max()
-            else:
-                w = int(args.width * res)
+                args.width = Ls.max() / res
 
-        new_Ys = np.full(Ys.shape, np.nan)
-        new_Ys[:, :w] = Ys[:, :1]
+            with ProfileData(args.output, "w").create(
+                int(args.width * res) + (M - Ls).min(), res, name
+            ) as out:
 
-        mask1 = ((w - Ls)[:, None] <= np.arange(M)[None, :]) & (
-            np.arange(M)[None, :] <= w
-        )
-        mask2 = np.arange(M)[None, :] <= Ls[:, None]
-        new_Ys[mask1] = Ys[mask2]
+                for padded, Ls, names in pad(
+                    file,
+                    args.width,
+                    args.batch_size,
+                    lambda msg: self.logger.info(f"{out.path} : {msg}"),
+                ):
+                    out.write_profiles(padded, Ls, names)
 
-        with ProfileData(args.output, "w").create(M, res, name) as out:
-            out.write_profiles(new_Ys, np.full(len(new_Ys), w), names)
-
-        self.logger.info(f"Padded profiles: {out.path}")
+        self.logger.info(f"Saved {out.path}.")

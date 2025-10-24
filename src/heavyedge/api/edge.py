@@ -168,16 +168,15 @@ def _trim(Ys, Ls, w1, w2):
     return ret
 
 
-def pad(f, width=None, batch_size=None, logger=lambda x: None):
+def pad(f, width, batch_size=None, logger=lambda x: None):
     """Pad edge profile to a specific width.
 
     Parameters
     ----------
     f : heavyedge.ProfileData
-    width : int
+    width : scalar
         Length to pad the profile to.
         Must be of physical length by `f.x()`.
-        If not passed, set to the length of the shortest profile.
     batch_size : int, optional
         Batch size to load data.
         If not passed, all data are loaded at once.
@@ -188,6 +187,10 @@ def pad(f, width=None, batch_size=None, logger=lambda x: None):
     ------
     padded : (batch_size, width) array
         Padded edge profile.
+    Ls : (batch_size,) array
+        Lengths of the padded profiles.
+    names : (batch_size,) array
+        Names of the padded profiles.
 
     Examples
     --------
@@ -195,25 +198,23 @@ def pad(f, width=None, batch_size=None, logger=lambda x: None):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import pad
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
-    ...     Ys = np.concatenate(list(pad(f, 20, batch_size=10)), axis=0)
+    ...     gen = pad(f, 20, batch_size=10)
+    ...     Ys = np.concatenate([ys for ys, _, _ in gen], axis=0)
     """
     N, M = f.shape()
     Ls = f._file["len"][:]
-    if width is None:
-        width_num = Ls.max()
-    else:
-        width_num = int(f.resolution() * width)
+    width_num = int(f.resolution() * width)
     substrate_num = (M - Ls).min()
 
     if batch_size is None:
-        Ys, Ls, _ = f[:]
+        Ys, Ls, names = f[:]
         logger(f"{N}/{N}")
-        yield _pad(Ys, Ls, width_num, substrate_num)
+        yield _pad(Ys, Ls, width_num, substrate_num), Ls, names
     else:
         for i in range(0, N, batch_size):
-            Ys, Ls, _ = f[i : i + batch_size]
+            Ys, Ls, names = f[i : i + batch_size]
             logger(f"{i}/{N}")
-            yield _pad(Ys, Ls, width_num, substrate_num)
+            yield _pad(Ys, Ls, width_num, substrate_num), Ls, names
 
 
 def _pad(Ys, Ls, w1, w2):
