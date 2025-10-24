@@ -84,38 +84,43 @@ class TrimCommand(Command):
             type=float,
             help="Edge width. If not passed, length of the shortest profile.",
         )
+        trim.add_argument(
+            "--batch-size",
+            type=int,
+            help="Batch size to load data. If not provided, loads entire profiles.",
+        )
         trim.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
     def run(self, args):
-        import numpy as np
-
+        from heavyedge.api import trim
         from heavyedge.io import ProfileData
 
-        self.logger.info(f"Trimming profiles: {args.profiles}")
+        self.logger.info(f"Writing {args.output}")
 
-        with ProfileData(args.profiles) as data:
-            _, M = data.shape()
-            res = data.resolution()
-            name = data.name()
+        with ProfileData(args.profiles) as file:
+            _, M = file.shape()
+            res = file.resolution()
+            name = file.name()
 
-            Ys, Ls, names = data[:]
-
+            Ls = file._file["len"][:]
             if args.width is None:
-                w = Ls.min()
+                width = Ls.min()
             else:
-                w = int(args.width * res)
+                width = int(args.width * res)
 
-        mask1 = np.repeat(np.arange(M)[None, :] <= w, len(Ys), axis=0)
-        mask2 = (np.arange(M)[None, :] >= (Ls - w)[:, None]) & (
-            np.arange(M)[None, :] <= Ls[:, None]
-        )
-        Ys[mask1] = Ys[mask2]
-        Ys[:, w + 1 :] = np.nan
+            with ProfileData(args.output, "w").create(
+                width + (M - Ls).min(), res, name
+            ) as out:
 
-        with ProfileData(args.output, "w").create(M, res, name) as out:
-            out.write_profiles(Ys, np.full(len(Ys), w), names)
+                for trimmed, Ls, names in trim(
+                    file,
+                    width,
+                    args.batch_size,
+                    lambda msg: self.logger.info(f"{out.path} : {msg}"),
+                ):
+                    out.write_profiles(trimmed, Ls, names)
 
-        self.logger.info(f"Trimmed profiles: {out.path}")
+        self.logger.info(f"Saved {out.path}.")
 
 
 @register_command("pad", "Pad edge profiles")
