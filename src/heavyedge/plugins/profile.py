@@ -195,3 +195,49 @@ class MergeCommand(Command):
                         data._file["len"][:],
                         data._file["names"][:],
                     )
+
+
+@register_command("filter", "Filter profile data")
+class FilterCommand(Command):
+    def add_parser(self, main_parser):
+        filter_parser = main_parser.add_parser(
+            self.name,
+            description="Filter profile data and save as hdf5 file.",
+            epilog="The resulting hdf5 file is in 'ProfileData' structure.",
+        )
+        filter_parser.add_argument(
+            "profiles",
+            type=pathlib.Path,
+            help="Path to preprocessed profile data in 'ProfileData' structure.",
+        )
+        filter_parser.add_argument(
+            "index",
+            type=pathlib.Path,
+            help="Path to index npy file for filtering.",
+        )
+        filter_parser.add_argument("--name", help="Name to label output dataset.")
+        filter_parser.add_argument(
+            "--batch-size", type=int, help="Batch size for processing."
+        )
+        filter_parser.add_argument(
+            "-o", "--output", type=pathlib.Path, help="Output file path"
+        )
+
+    def run(self, args):
+        import numpy as np
+
+        from heavyedge.io import ProfileData
+
+        index = np.load(args.index)
+        N = len(index)
+
+        with ProfileData(args.profiles) as data:
+            _, M = data.shape()
+            res = data.resolution()
+
+            with ProfileData(args.output, "w").create(M, res, args.name) as out:
+                if args.batch_size is not None:
+                    for i in range(0, N, args.batch_size):
+                        out.write_profiles(*data[index[i : i + args.batch_size]])
+                else:
+                    out.write_profiles(*data[index])

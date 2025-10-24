@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `heavyedge prep` command now accepts `--fill-value` argument.
 - `heavyedge mean` command now accepts `--batch-size` argument.
 - `api.mean_euclidean()` and `api.mean_wasserstein()` functions are added.
+- `heavyedge filter` command is introduced.
 
 ### Fixed
 
