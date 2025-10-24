@@ -7,6 +7,7 @@ from .profile import fill_after
 __all__ = [
     "scale_area",
     "scale_plateau",
+    "trim",
 ]
 
 
@@ -38,13 +39,13 @@ def scale_area(f, batch_size=None, logger=lambda x: None):
     """
     x = f.x()
 
+    N = len(f)
     if batch_size is None:
         Ys, Ls, _ = f[:]
         Ys /= _area(x, Ys, Ls)[:, np.newaxis]
-        logger("1/1")
+        logger(f"{N}/{N}")
         yield Ys
     else:
-        N = len(f)
         for i in range(0, N, batch_size):
             Ys, Ls, _ = f[i : i + batch_size]
             Ys /= _area(x, Ys, Ls)[:, np.newaxis]
@@ -84,15 +85,71 @@ def scale_plateau(f, batch_size=None, logger=lambda x: None):
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
     ...     Ys = np.concatenate(list(scale_plateau(f, batch_size=5)), axis=0)
     """
+    N = len(f)
     if batch_size is None:
         Ys, _, _ = f[:]
         Ys /= Ys[:, [0]]
-        logger("1/1")
+        logger(f"{N}/{N}")
         yield Ys
     else:
-        N = len(f)
         for i in range(0, N, batch_size):
             Ys, _, _ = f[i : i + batch_size]
             Ys /= Ys[:, [0]]
             logger(f"{i}/{N}")
             yield Ys
+
+
+def trim(f, width=None, batch_size=None, logger=lambda x: None):
+    """Trim edge profile to a specific width.
+
+    Parameters
+    ----------
+    f : heavyedge.ProfileData
+    width : int
+        Length to trim the profile to.
+        Must be of physical length by `f.x()`.
+        If not passed, set to the length of the shortest profile.
+    batch_size : int, optional
+        Batch size to load data.
+        If not passed, all data are loaded at once.
+    logger : callable, optional
+        Logger function which accepts a progress message string.
+
+    Yields
+    ------
+    trimmed : (batch_size, width) array
+        Trimmed edge profile.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> from heavyedge.api import trim
+    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
+    ...     Ys = np.concatenate(list(trim(f, 5, batch_size=10)), axis=0)
+    """
+    N, M = f.shape()
+    Ls = f._file["len"][:]
+    if width is None:
+        width_num = Ls.min()
+    else:
+        width_num = int(f.resolution() * width)
+    substrate_num = (M - Ls).min()
+
+    if batch_size is None:
+        Ys, Ls, _ = f[:]
+        logger(f"{N}/{N}")
+        yield _trim(Ys, Ls, width_num, substrate_num)
+    else:
+        for i in range(0, N, batch_size):
+            Ys, Ls, _ = f[i : i + batch_size]
+            logger(f"{i}/{N}")
+            yield _trim(Ys, Ls, width_num, substrate_num)
+
+
+def _trim(Ys, Ls, w1, w2):
+    N, M = Ys.shape
+    mask1 = np.arange(M)[None, :] >= (Ls - w1)[:, None]
+    mask2 = np.arange(M)[None, :] < (Ls + w2)[:, None]
+    ret = Ys[mask1 & mask2].reshape(N, w1 + w2)
+    return ret

@@ -35,13 +35,12 @@ def mean_euclidean(f, batch_size=None, logger=lambda x: None):
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
     ...     mean = mean_euclidean(f, batch_size=5)
     """
+    N, M = f.shape()
     if batch_size is None:
         Ys, _, _ = f[:]
         mean = np.mean(Ys, axis=0, dtype=np.float64)
-        logger("1/1")
+        logger(f"{N}/{N}")
     else:
-        N, M = f.shape()
-
         mean = np.zeros((M,), dtype=np.float64)
 
         for i in range(0, N, batch_size):
@@ -84,16 +83,15 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=lambda x: None):
     x = f.x()
     t = np.linspace(0, 1, grid_num)
 
+    N = len(f)
     if batch_size is None:
         Ys, Ls, _ = f[:]
         As = np.trapezoid(Ys, x, axis=-1)
         fs = Ys / As[:, np.newaxis]
         mean, L = wmean(x, fs, Ls, t)
         mean_A = As.mean()
-        logger("1/1")
+        logger(f"{N}/{N}")
     else:
-        N = len(f)
-
         g = np.zeros((grid_num,), dtype=np.float64)
         mean_A = 0
 
