@@ -32,15 +32,15 @@ cdef void _quantile_interp(double[:] t, double[:] G, double[:] x, double[:] out)
         while j < L - 2 and G[j + 1] < tval:
             j += 1
 
-            G0 = G[j]
-            G1 = G[j + 1]
-            x0 = x[j]
-            x1 = x[j + 1]
+        G0 = G[j]
+        G1 = G[j + 1]
+        x0 = x[j]
+        x1 = x[j + 1]
 
         if tval < G[j + 1]:
             out[i] = x0 + (x1 - x0) / (G1 - G0) * (tval - G0)
         else:
-            # G[-1] < 0 for numerical reason.
+            # G[-1] < 1 for numerical reason.
             out[i] = x1
 
 

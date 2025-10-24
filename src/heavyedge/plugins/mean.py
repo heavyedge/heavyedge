@@ -51,11 +51,10 @@ class MeanCommand(Command):
             _, M = file.shape()
             res = file.resolution()
             name = file.name()
-            mean = mean_wasserstein(file, args.wnum, args.batch_size, logger)
+            mean, L = mean_wasserstein(file, args.wnum, args.batch_size, logger)
+            mean[L:] = np.nan
 
         with ProfileData(args.output, "w").create(M, res, name) as out:
-            L = len(mean)
-            mean = np.pad(mean, (0, M - L), constant_values=np.nan)
             out.write_profiles(mean.reshape(1, -1), [L], [name])
 
         self.logger.info(f"Saved {out}.")

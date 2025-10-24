@@ -133,6 +133,8 @@ def wmean(x, fs, Ls, t):
     -------
     f_mean : ndarray
         Fréchet mean of *fs* over *x*.
+    L : int
+        Length of the support of *f_mean*.
 
     Examples
     --------
@@ -143,10 +145,10 @@ def wmean(x, fs, Ls, t):
     ...     x = data.x()
     ...     Ys, Ls, _ = data[:]
     >>> fs = Ys / np.trapezoid(Ys, x, axis=-1)[:, np.newaxis]
-    >>> f_mean = wmean(x, fs, Ls, np.linspace(0, 1, 100))
+    >>> f_mean, L = wmean(x, fs, Ls, np.linspace(0, 1, 100))
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
     ... plt.plot(x, fs.T, "--", color="gray")
-    ... plt.plot(x, f_mean)
+    ... plt.plot(x[:L], f_mean[:L])
     """
     Qs = quantile(x, fs, Ls, t)
     g = np.mean(Qs, axis=0)
@@ -161,7 +163,9 @@ def _wmean(x, t, g):
     pdf = 1 / np.gradient(q, t)
     pdf[-1] = 0
     pdf /= np.trapezoid(pdf, q)
-    return np.interp(x, q, pdf, left=pdf[0], right=pdf[-1])
+
+    L = np.searchsorted(x, q[-1]) + 1
+    return np.interp(x, q, pdf, left=pdf[0], right=0), L
 
 
 def _wmean_old(xs, fs, grid_num):

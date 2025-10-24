@@ -75,15 +75,17 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=None):
 
     Returns
     -------
-    (M,) array
+    f_mean : (M,) array
         Average profile.
+    L : int
+        Length of the support of *f_mean*.
 
     Examples
     --------
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import mean_wasserstein
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
-    ...     mean = mean_wasserstein(f, 100)
+    ...     mean, L = mean_wasserstein(f, 100)
     """
     if logger is None:
         # dummy logger
@@ -97,7 +99,7 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=None):
         Ys, Ls, _ = f[:]
         As = np.trapezoid(Ys, x, axis=-1)
         fs = Ys / As[:, np.newaxis]
-        mean = wmean(x, fs, Ls, t)
+        mean, L = wmean(x, fs, Ls, t)
         mean_A = As.mean()
         logger("1/1")
     else:
@@ -116,6 +118,6 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=None):
             mean_A += np.sum(As)
             logger(f"{i}/{num_batches}")
         g /= N
-        mean = _wmean(x, t, g)
+        mean, L = _wmean(x, t, g)
         mean_A /= N
-    return mean * mean_A
+    return mean * mean_A, L

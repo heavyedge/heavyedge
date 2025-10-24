@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `wasserstein.quantile()` function now takes multiple PDFs and their lengths.
 - `wasserstein.wmean()` function now takes a single x, multiple PDFs and their lengths, and pre-defined grid.
+- `wasserstein.wmean()` function now returns function interpolated over input `x`, and the length of its support.
+- `api.mean_wasserstein()` function now returns function interpolated over input `x`, and the length of its support.
 
 ### Deprecated
 

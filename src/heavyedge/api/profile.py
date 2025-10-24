@@ -83,8 +83,8 @@ def preprocess(Y, sigma, std_thres):
         peaks = np.empty(0, dtype=int)
 
     candidates = []
-    for i, x in enumerate(peaks):
-        x = X[x:]
+    for i, peak_idx in enumerate(peaks):
+        x = X[peak_idx:]
         if not len(x) > 2:
             continue
         y = Y[x]
