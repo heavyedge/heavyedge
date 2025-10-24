@@ -5,7 +5,7 @@ from importlib.metadata import entry_points
 
 import numpy as np
 
-from heavyedge.cli.command import Command, register_command
+from heavyedge.cli.command import Command, deprecated, register_command
 
 PLUGIN_ORDER = 0.0
 
@@ -171,6 +171,7 @@ class PrepCommand(Command):
         return (len(profile) == 0) or np.any(np.isnan(profile))
 
 
+@deprecated("1.6", "filtering in preparation step (heavyedge prep command)")
 @register_command("outlier", "Filter outlier profiles")
 class OutlierCommand(Command):
     def add_parser(self, main_parser):

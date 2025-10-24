@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RawProfileBase.profile_names()` method is deprecated. Implement `__getitem__()` and directly index the object instead.
 - `wasserstein.wdist()` function is deprecated. Use HeavyEdge-Distance package instead.
 - `api.mean()` function is deprecated. Use functions in `api.mean` module instead.
+- `outlier` command is deprecated. Filter in `prep` command instead.
 
 ## [1.5.0] - 2025-10-21
 

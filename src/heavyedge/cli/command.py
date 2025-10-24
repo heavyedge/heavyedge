@@ -6,10 +6,12 @@ __all__ = [
     "REGISTERED_COMMANDS",
     "Command",
     "register_command",
+    "deprecated",
 ]
 
 
 REGISTERED_COMMANDS = dict()
+DEPRECATED_COMMANDS = set()
 
 
 class Command(abc.ABC):
@@ -99,3 +101,36 @@ def register_command(name, desc):
         return cls
 
     return register
+
+
+def deprecated(version, use_instead):
+    """Decorator to mark a command as deprecated.
+
+    Deprecated commands are still accessible, but are not
+    displayed in the help message.
+
+    Additionally, warning is raised when the command is used.
+    """
+
+    def register(cls):
+        DEPRECATED_COMMANDS.add(cls)
+
+        cls.run = _run_deprecated_command(cls.run, version, use_instead)
+
+        return cls
+
+    return register
+
+
+def _run_deprecated_command(original_run, version, use_instead):
+    removed_version = str(int(version.split(".")[0]) + 1) + ".0"
+
+    def run(self, args):
+        self.logger.warning(
+            f"Command '{self.name}' is deprecated since HeavyEdge {version} "
+            f"and will be removed in {removed_version}. "
+            f"Use {use_instead} instead.",
+        )
+        return original_run(self, args)
+
+    return run

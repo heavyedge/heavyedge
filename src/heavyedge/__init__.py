@@ -22,9 +22,20 @@ def main():
     import sys
     from importlib.metadata import entry_points
 
-    from heavyedge.cli.command import REGISTERED_COMMANDS
+    from heavyedge.cli.command import DEPRECATED_COMMANDS, REGISTERED_COMMANDS
 
     from .cli.parser import ConfigArgumentParser
+
+    def filter_commands(commands):
+        filtered_commands = []
+        for group, command_dict in commands:
+            not_deprecated = {
+                name: (cls, desc)
+                for name, (cls, desc) in command_dict.items()
+                if cls not in DEPRECATED_COMMANDS
+            }
+            filtered_commands.append((group, not_deprecated))
+        return filtered_commands
 
     def format_epilog(commands):
         command_lengths = []
@@ -38,8 +49,11 @@ def main():
         ret = "LIST OF COMMANDS\n"
         for group, command_dict in commands:
             ret += f"{INDENT1}{group}:\n"
-            for name, (_, desc) in command_dict.items():
-                ret += f"{INDENT2}{name}{(SPACING - len(name)) * ' '}{desc}\n"
+            if not command_dict:
+                ret += f"{INDENT2}(no commands available)\n"
+            else:
+                for name, (_, desc) in command_dict.items():
+                    ret += f"{INDENT2}{name}{(SPACING - len(name)) * ' '}{desc}\n"
             ret += "\n"
         return ret
 
@@ -61,7 +75,7 @@ def main():
     heavyedge_parser = argparse.ArgumentParser(
         prog="heavyedge",
         description="Heavy edge profile analysis.",
-        epilog=format_epilog(COMMANDS),
+        epilog=format_epilog(filter_commands(COMMANDS)),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     heavyedge_parser.add_argument(
