@@ -53,7 +53,10 @@ def prep(
     >>> from heavyedge import get_sample_path, RawProfileCsvs
     >>> from heavyedge.api import prep
     >>> raw = RawProfileCsvs(get_sample_path("Type3"))
-    >>> Ys, Ls, names = next(prep(raw, 32, 0.01, batch_size=1))
+    >>> Ys, Ls, _ = next(prep(raw, 32, 0.01, batch_size=3))
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... for Y, L in zip(Ys, Ls):
+    ...     plt.plot(Y[:L])
     """
     if z_thres is not None:
         gen = _prep_outlier(raw_file, sigma, std_thres, z_thres)

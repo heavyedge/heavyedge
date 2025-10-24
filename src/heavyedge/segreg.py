@@ -9,6 +9,8 @@ Broken line regression with two segments.
    as it is no longer required by public API.
 """
 
+import warnings
+
 import numpy as np
 
 __all__ = [
@@ -17,14 +19,38 @@ __all__ = [
 ]
 
 
+def _deprecated(version, replace):
+    removed_version = str(int(version.split(".")[0]) + 1) + ".0"
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            warnings.warn(
+                f"{func.__name__}() is deprecated since HeavyEdge {version} "
+                f"and will be removed in {removed_version}. "
+                f"Use {replace} instead.",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 def _ols(Xi, Y):
     XT_X_inv = np.linalg.inv(Xi.T @ Xi)
     params = XT_X_inv @ (Xi.T @ Y)
     return params
 
 
+@_deprecated("1.5", "HeavyEdge-Landmarks package")
 def segreg(x, Y, psi0, tol=1e-5, maxiter=30):
     r"""Segmented regression with one breakpoint.
+
+    .. deprecated:: 1.5
+        This module will be removed in HeavyEdge 2.0,
+        as it is no longer required by public API.
 
     Parameters
     ----------
@@ -108,6 +134,7 @@ def segreg(x, Y, psi0, tol=1e-5, maxiter=30):
     return params, reached_max
 
 
+@_deprecated("1.5", "HeavyEdge-Landmarks package")
 def predict(x, b0, b1, b2, psi):
     r"""Predict y values from x coordinates by segmented regression model.
 
@@ -116,6 +143,10 @@ def predict(x, b0, b1, b2, psi):
     .. math::
 
         \beta_0 + \beta_1 + \beta_2 (\xi - \psi)_+.
+
+    .. deprecated:: 1.5
+        This module will be removed in HeavyEdge 2.0,
+        as it is no longer required by public API.
 
     Parameters
     ----------

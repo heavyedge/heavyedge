@@ -42,6 +42,8 @@ def scale_area(f, batch_size=None, logger=lambda x: None):
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
     ...     gen = scale_area(f, batch_size=5)
     ...     Ys = np.concatenate([ys for ys, _, _ in gen], axis=0)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(Ys.T)
     """
     x = f.x()
 
@@ -95,6 +97,8 @@ def scale_plateau(f, batch_size=None, logger=lambda x: None):
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
     ...     gen = scale_plateau(f, batch_size=5)
     ...     Ys = np.concatenate([ys for ys, _, _ in gen], axis=0)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(Ys.T)
     """
     N = len(f)
     if batch_size is None:
@@ -142,9 +146,13 @@ def trim(f, width1, width2, batch_size=None, logger=lambda x: None):
     >>> import numpy as np
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import trim
-    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
-    ...     gen = trim(f, 1000, 100, batch_size=10)
-    ...     Ys = np.concatenate([ys for ys, _, _ in gen], axis=0)
+    >>> with ProfileData(get_sample_path("MeanProfiles.h5")) as f:
+    ...     Ys, _, _ = f[:]
+    ...     gen = trim(f, 1500, 0, batch_size=10)
+    ...     Ys_trim = np.concatenate([ys for ys, _, _ in gen], axis=0)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(Ys.T)
+    ... plt.plot(Ys_trim.T)
     """
     N, _ = f.shape()
     Ls = f._file["len"][:]
@@ -199,9 +207,13 @@ def pad(f, width1, width2, batch_size=None, logger=lambda x: None):
     >>> import numpy as np
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import pad
-    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
-    ...     gen = pad(f, 3000, 100, batch_size=10)
-    ...     Ys = np.concatenate([ys for ys, _, _ in gen], axis=0)
+    >>> with ProfileData(get_sample_path("MeanProfiles.h5")) as f:
+    ...     Ys, _, _ = f[:]
+    ...     gen = pad(f, 5000, 100, batch_size=10)
+    ...     Ys_pad = np.concatenate([ys for ys, _, _ in gen], axis=0)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(Ys.T)
+    ... plt.plot(Ys_pad.T)
     """
     N, _ = f.shape()
     Ls = f._file["len"][:]

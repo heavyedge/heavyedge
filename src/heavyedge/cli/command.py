@@ -6,7 +6,7 @@ __all__ = [
     "REGISTERED_COMMANDS",
     "Command",
     "register_command",
-    "deprecated",
+    "deprecate_command",
 ]
 
 
@@ -103,13 +103,28 @@ def register_command(name, desc):
     return register
 
 
-def deprecated(version, use_instead):
+def deprecate_command(version, use_instead):
     """Decorator to mark a command as deprecated.
 
-    Deprecated commands are still accessible, but are not
-    displayed in the help message.
-
+    Deprecated commands are still accessible, but are not displayed in the help message.
     Additionally, warning is raised when the command is used.
+
+    Parameters
+    ----------
+    version : str
+        Version when the command is deprecated.
+    use_instead : str
+        Other API which user should use.
+
+    Examples
+    --------
+    Decorate the class definition.
+
+    >>> from heavyedge.cli import Command, register_command, deprecate_command
+    >>> @deprecate_command("1.5", "other command")
+    ... @register_command("foo", "My command")
+    ... class MyCommand(Command):
+    ...     ...
     """
 
     def register(cls):

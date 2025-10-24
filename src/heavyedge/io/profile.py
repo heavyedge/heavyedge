@@ -48,6 +48,14 @@ class ProfileData:
     -----
     ``self[key]`` returns a tuple of full profile data, profile length(s) and
     profile name(s).
+
+    Examples
+    --------
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as data:
+    ...     Ys, _, _ = data[:]
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(Ys.T)
     """
 
     def __init__(self, path, mode="r", **kwargs):

@@ -33,7 +33,11 @@ def mean_euclidean(f, batch_size=None, logger=lambda x: None):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import mean_euclidean
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
+    ...     Ys, _, _ = f[:]
     ...     mean = mean_euclidean(f, batch_size=5)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(Ys.T, "--", color="gray")
+    ... plt.plot(mean)
     """
     N, M = f.shape()
     if batch_size is None:
@@ -44,7 +48,7 @@ def mean_euclidean(f, batch_size=None, logger=lambda x: None):
         mean = np.zeros((M,), dtype=np.float64)
 
         for i in range(0, N, batch_size):
-            Ys, _, _ = f[i * batch_size : (i + 1) * batch_size]
+            Ys, _, _ = f[i : i + batch_size]
             mean += np.sum(Ys, axis=0)
             logger(f"{i}/{N}")
         mean /= N
@@ -78,7 +82,11 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=lambda x: None):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import mean_wasserstein
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
+    ...     Ys, _, _ = f[:]
     ...     mean, L = mean_wasserstein(f, 100)
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(Ys.T, "--", color="gray")
+    ... plt.plot(mean[:L])
     """
     x = f.x()
     t = np.linspace(0, 1, grid_num)
@@ -96,7 +104,7 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=lambda x: None):
         mean_A = 0
 
         for i in range(0, N, batch_size):
-            Ys, Ls, _ = f[i * batch_size : (i + 1) * batch_size]
+            Ys, Ls, _ = f[i : i + batch_size]
             As = np.trapezoid(Ys, x, axis=-1)
             fs = Ys / As[:, np.newaxis]
             Qs = quantile(x, fs, Ls, t)

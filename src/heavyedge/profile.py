@@ -115,7 +115,9 @@ def fill_after(Ys, Ls, fill_value):
     >>> with ProfileData(get_sample_path("Prep-Type2.h5")) as data:
     ...     x = data.x()
     ...     Ys, Ls, _ = data[:]
-    >>> fill_after(Ys, Ls, 0)
+    >>> fill_after(Ys, Ls, float("nan"))
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(Ys.T)
     """
     _, M = Ys.shape
     Ys[np.arange(M)[None, :] >= Ls[:, None]] = fill_value

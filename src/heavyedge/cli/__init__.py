@@ -4,7 +4,8 @@ __all__ = [
     "register_command",
     "Command",
     "ConfigArgumentParser",
+    "deprecate_command",
 ]
 
-from .command import Command, register_command
+from .command import Command, deprecate_command, register_command
 from .parser import ConfigArgumentParser

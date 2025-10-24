@@ -70,6 +70,9 @@ Data file API
 Low-level API
 -------------
 
+.. automodule:: heavyedge.profile
+    :members:
+
 .. automodule:: heavyedge.wasserstein
     :members:
 
@@ -99,6 +102,8 @@ All commands registered in the same entry point are grouped together when displa
 help message. Define ``PLUGIN_ORDER`` attribute in the module to control the displaying
 order.
 
+To deprecate a command, use :func:`heavyedge.cli.deprecate_command` decorator.
+
 .. autofunction:: heavyedge.cli.register_command
 
 .. autoclass:: heavyedge.cli.Command
@@ -106,6 +111,8 @@ order.
 
 .. autoclass:: heavyedge.cli.ConfigArgumentParser
     :members:
+
+.. autofunction:: heavyedge.cli.deprecate_command
 
 Custom raw data type
 --------------------
