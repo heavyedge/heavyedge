@@ -45,6 +45,10 @@ def _deprecated(version, replace):
 def preprocess(Y, sigma, std_thres):
     """Preprocess raw profile data.
 
+    .. deprecated:: 1.6
+        This function will be removed in HeavyEdge 2.0,
+        Use :func:`heavyedge.profile.preprocess` instead.
+
     Parameters
     ----------
     Y : 1-D array
@@ -118,6 +122,10 @@ def fill_after(Ys, Ls, fill_value):
 
     The input array *Ys* is modified.
 
+    .. deprecated:: 1.6
+        This function will be removed in HeavyEdge 2.0,
+        Use :func:`heavyedge.profile.fill_after` instead.
+
     Parameters
     ----------
     Ys : (N, M) array
@@ -143,6 +151,10 @@ def fill_after(Ys, Ls, fill_value):
 @_deprecated("1.6", "outlier detection in preprocessing step")
 def outlier(profiles, thres=3.5):
     """Detect outlier profiles.
+
+    .. deprecated:: 1.6
+        This function will be removed in HeavyEdge 2.0,
+        Use outlier detection in preprocessing step instead.
 
     Parameters
     ----------
@@ -190,6 +202,10 @@ def outlier(profiles, thres=3.5):
 @_deprecated("1.6", "heavyedge.api.mean module")
 def mean(x, profiles, grid_num):
     """Fréchet mean of profiles using Wasserstein distance.
+
+    .. deprecated:: 1.6
+        This function will be removed in HeavyEdge 2.0,
+        Use :mod:`heavyedge.api.mean` instead.
 
     Parameters
     ----------
