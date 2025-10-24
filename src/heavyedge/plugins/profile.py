@@ -178,6 +178,11 @@ class MergeCommand(Command):
             help="Paths to preprocessed profile data in 'ProfileData' structure.",
         )
         merge.add_argument("--name", help="Name to label output dataset.")
+        merge.add_argument(
+            "--batch-size",
+            type=int,
+            help="Batch size to load data. If not provided, load entire profiles.",
+        )
         merge.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
     def run(self, args):
@@ -190,11 +195,11 @@ class MergeCommand(Command):
         with ProfileData(args.output, "w").create(M, res, args.name) as out:
             for p in args.profiles:
                 with ProfileData(p) as data:
-                    out.write_profiles(
-                        data._file["profiles"][:],
-                        data._file["len"][:],
-                        data._file["names"][:],
-                    )
+                    if args.batch_size is not None:
+                        for i in range(0, data.shape[0], args.batch_size):
+                            out.write_profiles(*data[i : i + args.batch_size])
+                    else:
+                        out.write_profiles(*data[:])
 
 
 @register_command("filter", "Filter profile data")
@@ -217,7 +222,9 @@ class FilterCommand(Command):
         )
         filter_parser.add_argument("--name", help="Name to label output dataset.")
         filter_parser.add_argument(
-            "--batch-size", type=int, help="Batch size for processing."
+            "--batch-size",
+            type=int,
+            help="Batch size to load data. If not provided, load entire profiles.",
         )
         filter_parser.add_argument(
             "-o", "--output", type=pathlib.Path, help="Output file path"
