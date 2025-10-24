@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `heavyedge mean` command now accepts `--batch-size` argument.
 - `api.mean_euclidean()` and `api.mean_wasserstein()` functions are added.
 - `heavyedge filter` command is introduced.
+- `api.edge` module is introduced.
+- `api.scale_area()` function is introduced.
 
 ### Fixed
 

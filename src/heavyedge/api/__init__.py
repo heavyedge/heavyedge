@@ -11,8 +11,10 @@ __all__ = [
     "landmarks_type3",
     "plateau_type2",
     "plateau_type3",
+    "scale_area",
 ]
 
+from .edge import scale_area
 from .landmarks import landmarks_type2, landmarks_type3, plateau_type2, plateau_type3
 from .mean import mean_euclidean, mean_wasserstein
 from .profile import fill_after, mean, outlier, preprocess

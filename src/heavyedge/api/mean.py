@@ -10,7 +10,7 @@ __all__ = [
 ]
 
 
-def mean_euclidean(f, batch_size=None, logger=None):
+def mean_euclidean(f, batch_size=None, logger=lambda x: None):
     """Compute arithmetic mean profile.
 
     Parameters
@@ -35,30 +35,24 @@ def mean_euclidean(f, batch_size=None, logger=None):
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
     ...     mean = mean_euclidean(f, batch_size=5)
     """
-    if logger is None:
-        # dummy logger
-        def logger(msg):
-            pass
-
     if batch_size is None:
         Ys, _, _ = f[:]
         mean = np.mean(Ys, axis=0, dtype=np.float64)
         logger("1/1")
     else:
         N, M = f.shape()
-        num_batches = (N // batch_size) + int(bool(N % batch_size))
 
         mean = np.zeros((M,), dtype=np.float64)
 
-        for i in range(num_batches):
+        for i in range(0, N, batch_size):
             Ys, _, _ = f[i * batch_size : (i + 1) * batch_size]
             mean += np.sum(Ys, axis=0)
-            logger(f"{i}/{num_batches}")
+            logger(f"{i}/{N}")
         mean /= N
     return mean
 
 
-def mean_wasserstein(f, grid_num, batch_size=None, logger=None):
+def mean_wasserstein(f, grid_num, batch_size=None, logger=lambda x: None):
     """Compute mean profile by Fréchet mean with respect to Wasserstein metric.
 
     Parameters
@@ -87,11 +81,6 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=None):
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
     ...     mean, L = mean_wasserstein(f, 100)
     """
-    if logger is None:
-        # dummy logger
-        def logger(msg):
-            pass
-
     x = f.x()
     t = np.linspace(0, 1, grid_num)
 
@@ -104,19 +93,18 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=None):
         logger("1/1")
     else:
         N = len(f)
-        num_batches = (N // batch_size) + int(bool(N % batch_size))
 
         g = np.zeros((grid_num,), dtype=np.float64)
         mean_A = 0
 
-        for i in range(num_batches):
+        for i in range(0, N, batch_size):
             Ys, Ls, _ = f[i * batch_size : (i + 1) * batch_size]
             As = np.trapezoid(Ys, x, axis=-1)
             fs = Ys / As[:, np.newaxis]
             Qs = quantile(x, fs, Ls, t)
             g += np.sum(Qs, axis=0)
             mean_A += np.sum(As)
-            logger(f"{i}/{num_batches}")
+            logger(f"{i}/{N}")
         g /= N
         mean, L = _wmean(x, t, g)
         mean_A /= N
