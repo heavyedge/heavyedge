@@ -106,13 +106,14 @@ class TrimCommand(Command):
             if args.width is None:
                 args.width = Ls.min() / res
 
-            with ProfileData(args.output, "w").create(
-                int(args.width * res) + (M - Ls).min(), res, name
-            ) as out:
+            w1 = int(args.width * res)
+            w2 = (M - Ls).min()
+            with ProfileData(args.output, "w").create(w1 + w2, res, name) as out:
 
                 for trimmed, Ls, names in trim(
                     file,
-                    args.width,
+                    w1,
+                    w2,
                     args.batch_size,
                     lambda msg: self.logger.info(f"{out.path} : {msg}"),
                 ):
@@ -164,13 +165,14 @@ class PadCommand(Command):
             if args.width is None:
                 args.width = Ls.max() / res
 
-            with ProfileData(args.output, "w").create(
-                int(args.width * res) + (M - Ls).min(), res, name
-            ) as out:
+            w1 = int(args.width * res)
+            w2 = (M - Ls).min()
+            with ProfileData(args.output, "w").create(w1 + w2, res, name) as out:
 
                 for padded, Ls, names in pad(
                     file,
-                    args.width,
+                    w1,
+                    w2,
                     args.batch_size,
                     lambda msg: self.logger.info(f"{out.path} : {msg}"),
                 ):

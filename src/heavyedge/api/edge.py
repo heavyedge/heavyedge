@@ -110,15 +110,18 @@ def scale_plateau(f, batch_size=None, logger=lambda x: None):
             yield Ys, Ls, names
 
 
-def trim(f, width, batch_size=None, logger=lambda x: None):
+def trim(f, width1, width2, batch_size=None, logger=lambda x: None):
     """Trim edge profile to a specific width.
+
+    This function matches the contact points of all profiles to a same location.
 
     Parameters
     ----------
     f : heavyedge.ProfileData
-    width : scalar
-        Length to trim the profile to.
-        Must be of physical length by `f.x()`.
+    width1 : int
+        Number of points on the left side of the profile.
+    width2 : int
+        Number of points on the right side of the profile.
     batch_size : int, optional
         Batch size to load data.
         If not passed, all data are loaded at once.
@@ -140,23 +143,21 @@ def trim(f, width, batch_size=None, logger=lambda x: None):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import trim
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
-    ...     gen = trim(f, 5, batch_size=10)
+    ...     gen = trim(f, 1000, 100, batch_size=10)
     ...     Ys = np.concatenate([ys for ys, _, _ in gen], axis=0)
     """
-    N, M = f.shape()
+    N, _ = f.shape()
     Ls = f._file["len"][:]
-    width_num = int(f.resolution() * width)
-    substrate_num = (M - Ls).min()
 
     if batch_size is None:
         Ys, Ls, names = f[:]
         logger(f"{N}/{N}")
-        yield _trim(Ys, Ls, width_num, substrate_num), Ls, names
+        yield _trim(Ys, Ls, width1, width2), Ls, names
     else:
         for i in range(0, N, batch_size):
             Ys, Ls, names = f[i : i + batch_size]
             logger(f"{i}/{N}")
-            yield _trim(Ys, Ls, width_num, substrate_num), Ls, names
+            yield _trim(Ys, Ls, width1, width2), Ls, names
 
 
 def _trim(Ys, Ls, w1, w2):
@@ -168,15 +169,16 @@ def _trim(Ys, Ls, w1, w2):
     return ret
 
 
-def pad(f, width, batch_size=None, logger=lambda x: None):
+def pad(f, width1, width2, batch_size=None, logger=lambda x: None):
     """Pad edge profile to a specific width.
 
     Parameters
     ----------
     f : heavyedge.ProfileData
-    width : scalar
-        Length to pad the profile to.
-        Must be of physical length by `f.x()`.
+    width1 : int
+        Number of points on the left side of the profile.
+    width2 : int
+        Number of points on the right side of the profile.
     batch_size : int, optional
         Batch size to load data.
         If not passed, all data are loaded at once.
@@ -198,23 +200,21 @@ def pad(f, width, batch_size=None, logger=lambda x: None):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import pad
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
-    ...     gen = pad(f, 20, batch_size=10)
+    ...     gen = pad(f, 3000, 100, batch_size=10)
     ...     Ys = np.concatenate([ys for ys, _, _ in gen], axis=0)
     """
-    N, M = f.shape()
+    N, _ = f.shape()
     Ls = f._file["len"][:]
-    width_num = int(f.resolution() * width)
-    substrate_num = (M - Ls).min()
 
     if batch_size is None:
         Ys, Ls, names = f[:]
         logger(f"{N}/{N}")
-        yield _pad(Ys, Ls, width_num, substrate_num), Ls, names
+        yield _pad(Ys, Ls, width1, width2), Ls, names
     else:
         for i in range(0, N, batch_size):
             Ys, Ls, names = f[i : i + batch_size]
             logger(f"{i}/{N}")
-            yield _pad(Ys, Ls, width_num, substrate_num), Ls, names
+            yield _pad(Ys, Ls, width1, width2), Ls, names
 
 
 def _pad(Ys, Ls, w1, w2):
