@@ -1,4 +1,9 @@
-"""Profile preprocessing."""
+"""Profile preprocessing.
+
+.. deprecated:: 1.6
+   This module will be removed in HeavyEdge 2.0.
+   Use :mod:`heavyedge.api.preprocess` and :mod:`heavyedge.profile` instead.
+"""
 
 import warnings
 
@@ -36,6 +41,7 @@ def _deprecated(version, replace):
     return decorator
 
 
+@_deprecated("1.6", "heavyedge.profile.preprocess function")
 def preprocess(Y, sigma, std_thres):
     """Preprocess raw profile data.
 
