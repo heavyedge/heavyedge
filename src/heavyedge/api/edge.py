@@ -29,6 +29,10 @@ def scale_area(f, batch_size=None, logger=lambda x: None):
     ------
     scaled : (batch_size, M) array
         Scaled edge profile.
+    Ls : (batch_size,) array
+        Lengths of the scaled profiles.
+    names : (batch_size,) array
+        Names of the scaled profiles.
 
     Examples
     --------
@@ -36,22 +40,23 @@ def scale_area(f, batch_size=None, logger=lambda x: None):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import scale_area
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
-    ...     Ys = np.concatenate(list(scale_area(f, batch_size=5)), axis=0)
+    ...     gen = scale_area(f, batch_size=5)
+    ...     Ys = np.concatenate([ys for ys, _, _ in gen], axis=0)
     """
     x = f.x()
 
     N = len(f)
     if batch_size is None:
-        Ys, Ls, _ = f[:]
+        Ys, Ls, names = f[:]
         Ys /= _area(x, Ys, Ls)[:, np.newaxis]
         logger(f"{N}/{N}")
-        yield Ys
+        yield Ys, Ls, names
     else:
         for i in range(0, N, batch_size):
-            Ys, Ls, _ = f[i : i + batch_size]
+            Ys, Ls, names = f[i : i + batch_size]
             Ys /= _area(x, Ys, Ls)[:, np.newaxis]
             logger(f"{i}/{N}")
-            yield Ys
+            yield Ys, Ls, names
 
 
 def _area(x, Ys, Ls):
@@ -77,6 +82,10 @@ def scale_plateau(f, batch_size=None, logger=lambda x: None):
     ------
     scaled : (batch_size, M) array
         Scaled edge profile.
+    Ls : (batch_size,) array
+        Lengths of the scaled profiles.
+    names : (batch_size,) array
+        Names of the scaled profiles.
 
     Examples
     --------
@@ -84,20 +93,21 @@ def scale_plateau(f, batch_size=None, logger=lambda x: None):
     >>> from heavyedge import get_sample_path, ProfileData
     >>> from heavyedge.api import scale_plateau
     >>> with ProfileData(get_sample_path("Prep-Type3.h5")) as f:
-    ...     Ys = np.concatenate(list(scale_plateau(f, batch_size=5)), axis=0)
+    ...     gen = scale_plateau(f, batch_size=5)
+    ...     Ys = np.concatenate([ys for ys, _, _ in gen], axis=0)
     """
     N = len(f)
     if batch_size is None:
-        Ys, _, _ = f[:]
+        Ys, Ls, names = f[:]
         Ys /= Ys[:, [0]]
         logger(f"{N}/{N}")
-        yield Ys
+        yield Ys, Ls, names
     else:
         for i in range(0, N, batch_size):
-            Ys, _, _ = f[i : i + batch_size]
+            Ys, Ls, names = f[i : i + batch_size]
             Ys /= Ys[:, [0]]
             logger(f"{i}/{N}")
-            yield Ys
+            yield Ys, Ls, names
 
 
 def trim(f, width=None, batch_size=None, logger=lambda x: None):

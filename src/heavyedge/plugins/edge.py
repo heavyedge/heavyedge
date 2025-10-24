@@ -26,36 +26,41 @@ class ScaleCommand(Command):
             default="area",
             help="Scaling type (default=area).",
         )
+        scale.add_argument(
+            "--batch-size",
+            type=int,
+            help="Batch size to load data. If not provided, loads entire profiles.",
+        )
         scale.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
     def run(self, args):
-        import numpy as np
-
+        from heavyedge.api import scale_area, scale_plateau
         from heavyedge.io import ProfileData
 
-        self.logger.info(f"Scaling profiles: {args.profiles}")
-
-        with ProfileData(args.profiles) as data:
-            _, M = data.shape()
-            x = data.x()
-            res = data.resolution()
-            name = data.name()
-
-            Ys, Ls, names = data[:]
-
         if args.type == "area":
-            Ys[np.arange(M)[None, :] >= Ls[:, None]] = 0
-            Ys /= np.trapezoid(Ys, x, axis=1)[:, np.newaxis]
-            Ys[np.arange(M)[None, :] >= Ls[:, None]] = np.nan
+            scale = scale_area
         elif args.type == "plateau":
-            Ys /= Ys[:, [0]]
+            scale = scale_plateau
         else:
             raise NotImplementedError
 
-        with ProfileData(args.output, "w").create(M, res, name) as out:
-            out.write_profiles(Ys, Ls, names)
+        self.logger.info(f"Writing {args.output}")
 
-        self.logger.info(f"Scaled profiles: {out.path}")
+        with ProfileData(args.profiles) as file:
+            _, M = file.shape()
+            res = file.resolution()
+            name = file.name()
+
+            with ProfileData(args.output, "w").create(M, res, name) as out:
+
+                for scaled, Ls, names in scale(
+                    file,
+                    args.batch_size,
+                    lambda msg: self.logger.info(f"{out.path} : {msg}"),
+                ):
+                    out.write_profiles(scaled, Ls, names)
+
+        self.logger.info(f"Saved {out.path}.")
 
 
 @register_command("trim", "Trim edge profiles")
