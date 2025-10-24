@@ -26,36 +26,41 @@ class ScaleCommand(Command):
             default="area",
             help="Scaling type (default=area).",
         )
+        scale.add_argument(
+            "--batch-size",
+            type=int,
+            help="Batch size to load data. If not provided, loads entire profiles.",
+        )
         scale.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
     def run(self, args):
-        import numpy as np
-
+        from heavyedge.api import scale_area, scale_plateau
         from heavyedge.io import ProfileData
 
-        self.logger.info(f"Scaling profiles: {args.profiles}")
-
-        with ProfileData(args.profiles) as data:
-            _, M = data.shape()
-            x = data.x()
-            res = data.resolution()
-            name = data.name()
-
-            Ys, Ls, names = data[:]
-
         if args.type == "area":
-            Ys[np.arange(M)[None, :] >= Ls[:, None]] = 0
-            Ys /= np.trapezoid(Ys, x, axis=1)[:, np.newaxis]
-            Ys[np.arange(M)[None, :] >= Ls[:, None]] = np.nan
+            scale = scale_area
         elif args.type == "plateau":
-            Ys /= Ys[:, [0]]
+            scale = scale_plateau
         else:
             raise NotImplementedError
 
-        with ProfileData(args.output, "w").create(M, res, name) as out:
-            out.write_profiles(Ys, Ls, names)
+        self.logger.info(f"Writing {args.output}")
 
-        self.logger.info(f"Scaled profiles: {out.path}")
+        with ProfileData(args.profiles) as file:
+            _, M = file.shape()
+            res = file.resolution()
+            name = file.name()
+
+            with ProfileData(args.output, "w").create(M, res, name) as out:
+
+                for scaled, Ls, names in scale(
+                    file,
+                    args.batch_size,
+                    lambda msg: self.logger.info(f"{out.path} : {msg}"),
+                ):
+                    out.write_profiles(scaled, Ls, names)
+
+        self.logger.info(f"Saved {out.path}.")
 
 
 @register_command("trim", "Trim edge profiles")
@@ -79,38 +84,42 @@ class TrimCommand(Command):
             type=float,
             help="Edge width. If not passed, length of the shortest profile.",
         )
+        trim.add_argument(
+            "--batch-size",
+            type=int,
+            help="Batch size to load data. If not provided, loads entire profiles.",
+        )
         trim.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
     def run(self, args):
-        import numpy as np
-
+        from heavyedge.api import trim
         from heavyedge.io import ProfileData
 
-        self.logger.info(f"Trimming profiles: {args.profiles}")
+        self.logger.info(f"Writing {args.output}")
 
-        with ProfileData(args.profiles) as data:
-            _, M = data.shape()
-            res = data.resolution()
-            name = data.name()
+        with ProfileData(args.profiles) as file:
+            _, M = file.shape()
+            res = file.resolution()
+            name = file.name()
 
-            Ys, Ls, names = data[:]
-
+            Ls = file._file["len"][:]
             if args.width is None:
-                w = Ls.min()
-            else:
-                w = int(args.width * res)
+                args.width = Ls.min() / res
 
-        mask1 = np.repeat(np.arange(M)[None, :] <= w, len(Ys), axis=0)
-        mask2 = (np.arange(M)[None, :] >= (Ls - w)[:, None]) & (
-            np.arange(M)[None, :] <= Ls[:, None]
-        )
-        Ys[mask1] = Ys[mask2]
-        Ys[:, w + 1 :] = np.nan
+            w1 = int(args.width * res)
+            w2 = (M - Ls).min()
+            with ProfileData(args.output, "w").create(w1 + w2, res, name) as out:
 
-        with ProfileData(args.output, "w").create(M, res, name) as out:
-            out.write_profiles(Ys, np.full(len(Ys), w), names)
+                for trimmed, Ls, names in trim(
+                    file,
+                    w1,
+                    w2,
+                    args.batch_size,
+                    lambda msg: self.logger.info(f"{out.path} : {msg}"),
+                ):
+                    out.write_profiles(trimmed, Ls, names)
 
-        self.logger.info(f"Trimmed profiles: {out.path}")
+        self.logger.info(f"Saved {out.path}.")
 
 
 @register_command("pad", "Pad edge profiles")
@@ -134,37 +143,39 @@ class PadCommand(Command):
             type=float,
             help="Edge width. If not passed, length of the shortest profile.",
         )
+        pad.add_argument(
+            "--batch-size",
+            type=int,
+            help="Batch size to load data. If not provided, loads entire profiles.",
+        )
         pad.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
 
     def run(self, args):
-        import numpy as np
-
+        from heavyedge.api import pad
         from heavyedge.io import ProfileData
 
-        self.logger.info(f"Padding profiles: {args.profiles}")
+        self.logger.info(f"Writing {args.output}")
 
-        with ProfileData(args.profiles) as data:
-            _, M = data.shape()
-            res = data.resolution()
-            name = data.name()
+        with ProfileData(args.profiles) as file:
+            _, M = file.shape()
+            res = file.resolution()
+            name = file.name()
 
-            Ys, Ls, names = data[:]
-
+            Ls = file._file["len"][:]
             if args.width is None:
-                w = Ls.max()
-            else:
-                w = int(args.width * res)
+                args.width = Ls.max() / res
 
-        new_Ys = np.full(Ys.shape, np.nan)
-        new_Ys[:, :w] = Ys[:, :1]
+            w1 = int(args.width * res)
+            w2 = (M - Ls).min()
+            with ProfileData(args.output, "w").create(w1 + w2, res, name) as out:
 
-        mask1 = ((w - Ls)[:, None] <= np.arange(M)[None, :]) & (
-            np.arange(M)[None, :] <= w
-        )
-        mask2 = np.arange(M)[None, :] <= Ls[:, None]
-        new_Ys[mask1] = Ys[mask2]
+                for padded, Ls, names in pad(
+                    file,
+                    w1,
+                    w2,
+                    args.batch_size,
+                    lambda msg: self.logger.info(f"{out.path} : {msg}"),
+                ):
+                    out.write_profiles(padded, Ls, names)
 
-        with ProfileData(args.output, "w").create(M, res, name) as out:
-            out.write_profiles(new_Ys, np.full(len(new_Ys), w), names)
-
-        self.logger.info(f"Padded profiles: {out.path}")
+        self.logger.info(f"Saved {out.path}.")

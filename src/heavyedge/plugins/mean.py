@@ -40,21 +40,22 @@ class MeanCommand(Command):
         from heavyedge import ProfileData
         from heavyedge.api import mean_wasserstein
 
-        out = args.output.expanduser()
-
-        self.logger.info(f"Estimating Wasserstein mean profile: {out}")
-
-        def logger(msg):
-            self.logger.info(f"{out} : {msg}")
+        self.logger.info(f"Writing {args.output}")
 
         with ProfileData(args.profiles) as file:
             _, M = file.shape()
             res = file.resolution()
             name = file.name()
-            mean, L = mean_wasserstein(file, args.wnum, args.batch_size, logger)
-            mean[L:] = np.nan
 
-        with ProfileData(args.output, "w").create(M, res, name) as out:
-            out.write_profiles(mean.reshape(1, -1), [L], [name])
+            with ProfileData(args.output, "w").create(M, res, name) as out:
+                mean, L = mean_wasserstein(
+                    file,
+                    args.wnum,
+                    args.batch_size,
+                    lambda msg: self.logger.info(f"{out.path} : {msg}"),
+                )
+                mean[L:] = np.nan
 
-        self.logger.info(f"Saved {out}.")
+                out.write_profiles(mean.reshape(1, -1), [L], [name])
+
+        self.logger.info(f"Saved {out.path}.")

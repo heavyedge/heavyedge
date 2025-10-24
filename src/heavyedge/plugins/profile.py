@@ -78,7 +78,7 @@ class PrepCommand(Command):
                 fill_after(Ys, Ls, fill_value)
             outfile.write_profiles(Ys, Ls, names)
 
-        self.logger.info(f"Preprocessing: {args.raw}")
+        self.logger.info(f"Writing {args.output}")
 
         raw_type = entry_points(group="heavyedge.rawdata")[args.type].load()
         raw = raw_type(args.raw)
@@ -164,7 +164,7 @@ class PrepCommand(Command):
                 # save remaining batch
                 save_batch(Ys, Ls, names, args.fill_value, out)
 
-        self.logger.info(f"Preprocessed: {out.path}")
+        self.logger.info(f"Saved {out.path}")
 
     @staticmethod
     def is_invalid(profile):
@@ -222,7 +222,7 @@ class OutlierCommand(Command):
                     if not skip:
                         out.write_profiles(Y.reshape(1, -1), [L], [name])
 
-        self.logger.info(f"Removed outliers: {out.path}")
+        self.logger.info(f"Saved {out.path}")
 
 
 @register_command("merge", "Merge profile data")
@@ -250,6 +250,8 @@ class MergeCommand(Command):
     def run(self, args):
         from heavyedge.io import ProfileData
 
+        self.logger.info(f"Writing {args.output}")
+
         with ProfileData(args.profiles[0]) as data:
             _, M = data.shape()
             res = data.resolution()
@@ -262,6 +264,8 @@ class MergeCommand(Command):
                             out.write_profiles(*data[i : i + args.batch_size])
                     else:
                         out.write_profiles(*data[:])
+
+        self.logger.info(f"Saved {out.path}")
 
 
 @register_command("filter", "Filter profile data")
@@ -295,6 +299,8 @@ class FilterCommand(Command):
     def run(self, args):
         from heavyedge.io import ProfileData
 
+        self.logger.info(f"Writing {args.output}")
+
         index = np.load(args.index)
         N = len(index)
 
@@ -308,3 +314,5 @@ class FilterCommand(Command):
                         out.write_profiles(*data[index[i : i + args.batch_size]])
                 else:
                     out.write_profiles(*data[index])
+
+        self.logger.info(f"Saved {out.path}")

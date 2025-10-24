@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `heavyedge mean` command now accepts `--batch-size` argument.
 - `api.mean_euclidean()` and `api.mean_wasserstein()` functions are added.
 - `heavyedge filter` command is introduced.
+- `api.edge` module is introduced.
+- `api.scale_area()` function is introduced.
+- `api.scale_plateau()` function is introduced.
 
 ### Fixed
 
@@ -27,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `wasserstein.wmean()` function now returns function interpolated over input `x`, and the length of its support.
 - `api.mean_wasserstein()` function now returns function interpolated over input `x`, and the length of its support.
 - `api.outlier` now takes scalar values instead of profiles.
+- `scale` command now no loger fills data outside the contact point with `nan`.
+- `trim` command and `pad` command now no longer fills data outside the contact point with `nan`.
+Instead, they result data whose length of the second axis different from the original data. 
 
 ### Deprecated
 
