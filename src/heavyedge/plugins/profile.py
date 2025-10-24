@@ -77,13 +77,13 @@ class PrepCommand(Command):
 
         raw_type = entry_points(group="heavyedge.rawdata")[args.type].load()
         raw = raw_type(args.raw)
-        raw_profiles = zip(raw.profiles(), raw.profile_names())
 
         if args.fill_value == "0":
             args.fill_value = 0
 
         # search for the first valid profile to determine M
-        for profile, name in raw_profiles:
+        for i in range(len(raw)):
+            profile, name = raw[i]
             if is_invalid(profile):
                 continue
             M = len(profile)
@@ -96,7 +96,8 @@ class PrepCommand(Command):
 
         with ProfileData(args.output, "w").create(M, args.res, args.name) as out:
             # iterate over the remaining profiles
-            for profile, name in raw_profiles:
+            for j in range(i + 1, len(raw)):
+                profile, name = raw[j]
                 if is_invalid(profile):
                     continue
                 Y, L = preprocess(profile, args.sigma, args.std_thres)

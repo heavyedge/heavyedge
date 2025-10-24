@@ -28,7 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-- `RawProfileBase.all_profiles()` method is deprecated. Directly iterate `profiles()` method instead.
+- `RawProfileBase.count_profiles()` method is deprecated. Implement `__len__()` method and use `len()` function instead.
+- `RawProfileBase.profiles()` method is deprecated. Implement `__getitem__()` and directly index the object instead.
+- `RawProfileBase.all_profiles()` method is deprecated. Implement `__getitem__()` and directly index the object instead.
+- `RawProfileBase.profile_names()` method is deprecated. Implement `__getitem__()` and directly index the object instead.
 - `wasserstein.wdist()` function is deprecated. Use HeavyEdge-Distance package instead.
 - `api.mean()` function is deprecated. Use functions in `api.mean` module instead.
 
@@ -41,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - `landmarks_type2()`, `landmarks_type3()`, `plateau_type2()`, `plateau_type3()` functions are deprecated. Use HeavyEdge-Landmarks package instead.
-- `ProfileData.profile_names()` and `ProfileData.all_profiles()` methods are deprecated. Directly iterate or index `ProfileData()` object instead.
+- `ProfileData.profile_names()` and `ProfileData.all_profiles()` methods are deprecated. Directly index the object instead.
 
 ## [1.4.1] - 2025-09-16
 

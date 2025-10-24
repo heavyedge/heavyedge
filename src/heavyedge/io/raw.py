@@ -2,9 +2,7 @@
 
 import abc
 import csv
-import numbers
 import warnings
-from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
@@ -37,7 +35,7 @@ def _deprecated(version, replace):
 class RawProfileBase(abc.ABC):
     """Base class to read raw profile data.
 
-    All raw profiles must have the same length.
+    All profiles must have the same length.
 
     Notes
     -----
@@ -48,41 +46,58 @@ class RawProfileBase(abc.ABC):
         self.path = Path(path).expanduser()
 
     def __len__(self):
+        """Return number of profile data.
+
+        .. note::
+            This method will be an abstract method in HeavyEdge 2.0.
+            User should implement it with an efficient algorithm.
+        """
         return self.count_profiles()
 
     def __getitem__(self, key):
-        """Profile and name indexing.
+        """Return profile and name at index.
 
-        By default, uses :meth:`all_profiles` and :meth:`profile_names`.
-        Subclasses are encouraged to redefine this method for better performance.
+        .. note::
+            This method will be an abstract method in HeavyEdge 2.0.
+            User should implement it with an efficient algorithm.
         """
         return (self.all_profiles()[key], np.array(self.profile_names())[key])
 
+    @_deprecated("1.6", "__len__() method")
     @abc.abstractmethod
     def count_profiles(self):
         """Number of raw profiles.
+
+        .. deprecated:: 1.6
+            This method will be removed in HeavyEdge 2.0.
+            Implement __len__() and use len() instead.
 
         Returns
         -------
         int
         """
 
-    @abc.abstractmethod
+    @_deprecated("1.6", "__getitem__() method")
     def profiles(self):
         """Yield raw profiles.
+
+        .. deprecated:: 1.6
+            This method will be removed in HeavyEdge 2.0.
+            Implement __getitem__() and index the object instead.
 
         Yields
         ------
         1-D ndarray
         """
 
-    @_deprecated("1.5", "profiles() method")
+    @_deprecated("1.6", "__getitem__() method")
+    @abc.abstractmethod
     def all_profiles(self):
         """Return all profiles as an 2-D array.
 
-        .. deprecated:: 1.5
+        .. deprecated:: 1.6
             This method will be removed in HeavyEdge 2.0.
-            Directly iterate over the generator from profiles() method
+            Implement __getitem__() and index the object instead.
 
         Returns
         -------
@@ -90,9 +105,14 @@ class RawProfileBase(abc.ABC):
         """
         return np.array([p for p in self.profiles()])
 
+    @_deprecated("1.6", "__getitem__() method")
     @abc.abstractmethod
     def profile_names(self):
         """Yield profile names.
+
+        .. deprecated:: 1.6
+            This method will be removed in HeavyEdge 2.0.
+            Implement __getitem__() and index the object instead.
 
         Yields
         ------
@@ -126,15 +146,19 @@ class RawProfileCsvs(RawProfileBase):
     Examples
     --------
     >>> from heavyedge import get_sample_path, RawProfileCsvs
-    >>> profiles = RawProfileCsvs(get_sample_path("Type3")).profiles()
+    >>> profiles = RawProfileCsvs(get_sample_path("Type3"))
     >>> import matplotlib.pyplot as plt  # doctest: +SKIP
-    ... for Y in profiles:
-    ...     plt.plot(Y)
+    ... for i in range(len(profiles)):
+    ...     profile, _ = profiles[i]
+    ...     plt.plot(profile)
     """
 
     def __init__(self, path):
         super().__init__(path)
         self._files = sorted(self.path.glob("*.csv"))
+
+    def __len__(self):
+        return len(self._files)
 
     @staticmethod
     def _read_profile(path):
@@ -144,33 +168,19 @@ class RawProfileCsvs(RawProfileBase):
         return profile
 
     def __getitem__(self, key):
-        if isinstance(key, numbers.Integral):
-            file = self._files[key]
-            return (self._read_profile(file), str(file.stem))
-        elif isinstance(key, slice):
-            files = self._files[key]
-            profiles, names = [], []
-            for file in files:
-                profiles.append(self._read_profile(file))
-                names.append(str(file.stem))
-            return (np.array(profiles), np.array(names))
-        elif isinstance(key, (Sequence, np.ndarray)):
-            profiles, names = [], []
-            for k in key:
-                file = self._files[k]
-                profiles.append(self._read_profile(file))
-                names.append(str(file.stem))
-            return (np.array(profiles), np.array(names))
-        else:
-            raise TypeError(f"Invalid index type: {type(key)}")
+        file = self._files[key]
+        return (self._read_profile(file), str(file.stem))
 
     def count_profiles(self):
-        return len(list(self._files))
+        # TODO: remove in HeavyEdge 2.0
+        return len(self)
 
     def profiles(self):
+        # TODO: remove in HeavyEdge 2.0
         for file in self._files:
             yield self._read_profile(file)
 
     def profile_names(self):
+        # TODO: remove in HeavyEdge 2.0
         for f in self._files:
             yield str(f.stem)
