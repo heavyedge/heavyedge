@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from .profile import fill_after
+from heavyedge.profile import fill_after
 
 __all__ = [
     "scale_area",

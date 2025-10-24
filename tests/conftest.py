@@ -1,11 +1,9 @@
 import csv
+import subprocess
 
 import numpy as np
 import pytest
 from numpy.polynomial import Polynomial
-
-from heavyedge import ProfileData, RawProfileCsvs
-from heavyedge.api import preprocess
 
 np.random.seed(0)
 
@@ -190,11 +188,22 @@ def tmp_rawdata_type3_path(tmp_path_factory):
 @pytest.fixture(scope="session")
 def tmp_prepdata_type2_path(tmp_rawdata_type2_path, tmp_path_factory):
     path = tmp_path_factory.mktemp("PrepData-") / "Type2.h5"
-    rawdata = RawProfileCsvs(tmp_rawdata_type2_path)
-    M = len(next(rawdata.profiles()))
-
-    with ProfileData(path, "w").create(M, 1, "") as out:
-        for profile, name in zip(rawdata.profiles(), rawdata.profile_names()):
-            Y, L = preprocess(profile, 32, 0.1)
-            out.write_profiles(Y.reshape(1, -1), [L], [name])
+    subprocess.run(
+        [
+            "heavyedge",
+            "prep",
+            "--type",
+            "csvs",
+            "--res=1",
+            "--sigma=1",
+            "--std-thres=40",
+            "--fill-value=0",
+            "--z-thres=3.5",
+            tmp_rawdata_type2_path,
+            "-o",
+            path,
+        ],
+        capture_output=True,
+        check=True,
+    )
     return path
