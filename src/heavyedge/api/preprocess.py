@@ -30,6 +30,7 @@ def prep(
         Standard deviation threshold to detect contact point.
     fill_value : scalar, default=0.0
         Value to fill after the contact point.
+        If None, does not fill the array.
     z_thres : scalar, optional
         Z-score threshold to detect outliers.
         If not passed, outlier detection is not performed.
@@ -67,7 +68,8 @@ def prep(
     batch_count = 0
     Ys, Ls, names = [], [], []
     for i, (Y, L, name) in enumerate(gen):
-        Y[L:] = fill_value
+        if fill_value is not None:
+            Y[L:] = fill_value
         Ys.append(Y)
         Ls.append(L)
         names.append(name)
