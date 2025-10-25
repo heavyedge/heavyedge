@@ -21,7 +21,9 @@ Command line
 ------------
 
 Command line interface provides pre-defined subroutines to handle profile data files.
-It can be invoked by::
+It can be invoked by:
+
+.. code-block:: bash
 
    heavyedge <command>
 
