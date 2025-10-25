@@ -144,6 +144,7 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=lambda x: None):
             "Passing profiles to mean_wasserstein() whose values after their "
             "contact points are not zero is deprecated and will be removed in v2.0",
             DeprecationWarning,
+            stacklevel=2,
         )
 
     return mean * mean_A, L
