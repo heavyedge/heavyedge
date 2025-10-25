@@ -1,5 +1,7 @@
 """Estimate average profiles."""
 
+import warnings
+
 import numpy as np
 
 from heavyedge.wasserstein import _wmean, quantile, wmean
@@ -77,6 +79,13 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=lambda x: None):
     L : int
         Length of the support of *f_mean*.
 
+    Notes
+    -----
+    This function automatically fills the profiles with zero values after their contact
+    points.
+    In HeavyEdge 2.0, this feature will be removed and *f* will be required to contain
+    profiles already filled with zero values.
+
     Examples
     --------
     >>> from heavyedge import get_sample_path, ProfileData
@@ -92,8 +101,16 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=lambda x: None):
     t = np.linspace(0, 1, grid_num)
 
     N = len(f)
+    DEPRECATED = False
     if batch_size is None:
         Ys, Ls, _ = f[:]
+        # zero filling: will be removed in v2.0
+        _, M = Ys.shape
+        mask = np.arange(M)[None, :] >= Ls[:, None]
+        if np.any(Ys[mask] != 0):
+            DEPRECATED = True
+            Ys[mask] = 0
+        # zero filling complete.
         As = np.trapezoid(Ys, x, axis=-1)
         fs = Ys / As[:, np.newaxis]
         mean, L = wmean(x, fs, Ls, t)
@@ -105,6 +122,13 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=lambda x: None):
 
         for i in range(0, N, batch_size):
             Ys, Ls, _ = f[i : i + batch_size]
+            # zero filling: will be removed in v2.0
+            _, M = Ys.shape
+            mask = np.arange(M)[None, :] >= Ls[:, None]
+            if np.any(Ys[mask] != 0):
+                DEPRECATED = True
+                Ys[mask] = 0
+            # zero filling complete.
             As = np.trapezoid(Ys, x, axis=-1)
             fs = Ys / As[:, np.newaxis]
             Qs = quantile(x, fs, Ls, t)
@@ -114,4 +138,12 @@ def mean_wasserstein(f, grid_num, batch_size=None, logger=lambda x: None):
         g /= N
         mean, L = _wmean(x, t, g)
         mean_A /= N
+
+    if DEPRECATED:
+        warnings.warn(
+            "Passing profiles to mean_wasserstein() whose values after their "
+            "contact points are not zero is deprecated and will be removed in v2.0",
+            DeprecationWarning,
+        )
+
     return mean * mean_A, L

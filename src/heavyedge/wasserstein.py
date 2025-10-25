@@ -48,6 +48,7 @@ def quantile(x, fs, Ls, t):
         Coordinates of grids over which *fs* are measured.
     fs : (N, M1) ndarray
         Empirical probability density functions.
+        Each function must have zero values after each length in *Ls*.
     Ls : (N,) ndarray
         Length of supports of each *fs*.
     t : (M2,) ndarray
@@ -123,6 +124,7 @@ def wmean(x, fs, Ls, t):
         Coordinates of grids over which *fs* are measured.
     fs : (N, M1) ndarray
         Empirical probability density functions.
+        Each function must have zero values after each length in *Ls*.
     Ls : (N,) ndarray
         Length of supports of each *fs*.
     t : (M2,) ndarray

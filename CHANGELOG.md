@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `heavyedge mean` command now accepts `--fill-value` argument.
 
+### Fixed
+
+- `mean_wasserstein()` fills input profiles with zero values after their contact points.
+
+### Deprecated
+
+- Passing profile data which are not filled with zero values after their contact points
+to `mean_wasserstein()` is deprecated.
+
 ## [1.6.0] - 2025-10-25
 
 ### Added
