@@ -25,6 +25,11 @@ class MeanCommand(Command):
             type=int,
             help="Number of sample points to compute Wasserstein mean.",
         )
+        mean.add_config_argument(
+            "--fill-value",
+            choices=["0", "nan"],
+            help="Value to fill profile after the contact point. (default=0)",
+        )
         mean.add_argument(
             "--batch-size",
             type=int,
@@ -35,12 +40,13 @@ class MeanCommand(Command):
         )
 
     def run(self, args):
-        import numpy as np
-
         from heavyedge import ProfileData
         from heavyedge.api import mean_wasserstein
 
         self.logger.info(f"Writing {args.output}")
+
+        if args.fill_value in {None, 0}:
+            args.fill_value = 0
 
         with ProfileData(args.profiles) as file:
             _, M = file.shape()
@@ -54,7 +60,7 @@ class MeanCommand(Command):
                     args.batch_size,
                     lambda msg: self.logger.info(f"{out.path} : {msg}"),
                 )
-                mean[L:] = np.nan
+                mean[L:] = args.fill_value
 
                 out.write_profiles(mean.reshape(1, -1), [L], [name])
 
