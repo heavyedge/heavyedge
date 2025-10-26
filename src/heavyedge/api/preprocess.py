@@ -2,10 +2,11 @@
 
 import numpy as np
 
-from heavyedge.profile import preprocess
+from heavyedge.profile import fill_after, preprocess
 
 __all__ = [
     "prep",
+    "fill",
 ]
 
 
@@ -128,3 +129,52 @@ def _prep(raw, sigma, std_thres):
 
 def _is_invalid(profile):
     return (len(profile) == 0) or np.any(np.isnan(profile)) or np.any(np.isinf(profile))
+
+
+def fill(file, fill_value, batch_size=None, logger=lambda x: None):
+    """Fill profiles after the contact point.
+
+    Parameters
+    ----------
+    file : heavyedge.ProfileData
+        Open h5 file.
+    fill_value : scalar
+        Value to fill after the contact point.
+    batch_size : int, optional
+        Batch size to load data.
+        If not passed, all data are loaded at once.
+    logger : callable, optional
+        Logger function which accepts a progress message string.
+
+    Yields
+    ------
+    Ys : (batch_size, M) array
+        Filled profiles.
+    Ls : (batch_size,) array
+        Lengths of the filled profiles.
+    names : (batch_size,) array
+        Names of the filled profiles.
+
+    Examples
+    --------
+    >>> from heavyedge import get_sample_path, ProfileData
+    >>> from heavyedge.api import fill
+    >>> with ProfileData(get_sample_path("Prep-Type1.h5")) as file:
+    ...     Ys, _, _ = file[:]
+    ...     Ys_filled, _, _ = next(fill(file, float("nan")))
+    >>> import matplotlib.pyplot as plt  # doctest: +SKIP
+    ... plt.plot(Ys.T, color="gray")
+    ... plt.plot(Ys_filled.T)
+    """
+    N = len(file)
+    if batch_size is None:
+        Ys, Ls, names = file[:]
+        fill_after(Ys, Ls, fill_value)
+        logger(f"{N}/{N}")
+        yield Ys, Ls, names
+    else:
+        for i in range(0, N, batch_size):
+            Ys, Ls, names = file[i : i + batch_size]
+            fill_after(Ys, Ls, fill_value)
+            logger(f"{i}/{N}")
+            yield Ys, Ls, names
