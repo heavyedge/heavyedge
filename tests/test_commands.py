@@ -62,6 +62,21 @@ def test_process_commands(tmp_rawdata_type2_path, tmp_path):
     )
     assert os.path.exists(filtered_path)
 
+    filled_path = tmp_path / "FilledProfiles.h5"
+    subprocess.run(
+        [
+            "heavyedge",
+            "fill",
+            processed_path,
+            "--fill-value=nan",
+            "-o",
+            filled_path,
+        ],
+        capture_output=True,
+        check=True,
+    )
+    assert os.path.exists(filled_path)
+
 
 def test_mean_command(tmp_prepdata_type2_path, tmp_path):
     mean_path = tmp_path / "MeanProfile.h5"

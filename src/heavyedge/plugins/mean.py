@@ -27,8 +27,11 @@ class MeanCommand(Command):
         )
         mean.add_config_argument(
             "--fill-value",
-            choices=["0", "nan"],
-            help="Value to fill profile after the contact point. (default=0)",
+            type=float,
+            help=(
+                "Value to fill after the contact point (default=0). "
+                " 'nan' can be passed."
+            ),
         )
         mean.add_argument(
             "--batch-size",
@@ -45,7 +48,7 @@ class MeanCommand(Command):
 
         self.logger.info(f"Writing {args.output}")
 
-        if args.fill_value in {None, 0}:
+        if args.fill_value is None:
             args.fill_value = 0
 
         with ProfileData(args.profiles) as file:

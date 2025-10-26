@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `api.fill()` function is added.
+- `heavyedge fill` command is added.
 
 ## [1.6.2] - 2025-10-25
 

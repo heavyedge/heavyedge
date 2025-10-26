@@ -50,8 +50,12 @@ class PrepCommand(Command):
         )
         prep.add_config_argument(
             "--fill-value",
-            choices=["0", "nan"],
-            help="Value to fill profile after the contact point.",
+            type=float,
+            help=(
+                "Value to fill profile after the contact point. "
+                "If not passed, do not fill the profile. "
+                "'nan' can be passed."
+            ),
         )
         prep.add_config_argument(
             "--z-thres",
@@ -76,9 +80,6 @@ class PrepCommand(Command):
 
         raw_type = entry_points(group="heavyedge.rawdata")[args.type].load()
         raw = raw_type(args.raw)
-
-        if args.fill_value == "0":
-            args.fill_value = 0
 
         gen = prep(
             raw,
@@ -155,6 +156,59 @@ class OutlierCommand(Command):
                 ):
                     if not skip:
                         out.write_profiles(Y.reshape(1, -1), [L], [name])
+
+        self.logger.info(f"Saved {out.path}")
+
+
+@register_command("fill", "Fill profiles after the contact point")
+class FillCommand(Command):
+    def add_parser(self, main_parser):
+        fill = main_parser.add_parser(
+            self.name,
+            description="Fill profiles after the contact point and save as hdf5 file.",
+            epilog="The resulting hdf5 file is in 'ProfileData' structure.",
+        )
+        fill.add_argument(
+            "profiles",
+            type=pathlib.Path,
+            help="Path to preprocessed profile data in 'ProfileData' structure.",
+        )
+        fill.add_config_argument(
+            "--fill-value",
+            type=float,
+            help=(
+                "Value to fill after the contact point (default=0). "
+                " 'nan' can be passed."
+            ),
+        )
+        fill.add_config_argument(
+            "--batch-size",
+            type=int,
+            help="Batch size to load data. If not passed, all data are loaded at once.",
+        )
+        fill.add_argument("-o", "--output", type=pathlib.Path, help="Output file path")
+
+    def run(self, args):
+        from heavyedge.api import fill
+        from heavyedge.io import ProfileData
+
+        self.logger.info(f"Writing {args.output}")
+
+        if args.fill_value is None:
+            args.fill_value = 0
+
+        with ProfileData(args.profiles) as file:
+            (_, M), res, name = file.shape(), file.resolution(), file.name()
+            gen = fill(
+                file,
+                args.fill_value,
+                args.batch_size,
+                lambda msg: self.logger.info(f"{args.output} : {msg}"),
+            )
+
+            with ProfileData(args.output, "w").create(M, res, name) as out:
+                for Ys, Ls, names in gen:
+                    out.write_profiles(Ys, Ls, names)
 
         self.logger.info(f"Saved {out.path}")
 
