@@ -100,13 +100,15 @@ def _prep_outlier(raw, sigma, std_thres, z_thres):
     sums = np.array(sums)
     is_outlier = _outlier(sums, z_thres)
     idxs = np.array(idxs)[~is_outlier]
+    Ls = np.array(Ls)[~is_outlier]
 
     # yield
     for i, L in zip(idxs, Ls):
         Y, name = raw[i]
         if Y[0] < Y[-1]:
             Y = np.flip(Y)
-        yield (Y - Y[L - 1]), L, name
+        Y = Y - Y[L - 1]
+        yield Y, L, name
 
 
 def _outlier(values, thres=3.5):
