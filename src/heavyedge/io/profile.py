@@ -47,7 +47,7 @@ class ProfileData:
     Notes
     -----
     ``self[key]`` returns a tuple of full profile data, profile length(s) and
-    profile name(s).
+    profile name(s). If ``key`` is a sequence, it must be sorted in ascending order.
 
     Examples
     --------

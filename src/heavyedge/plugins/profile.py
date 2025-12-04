@@ -276,6 +276,11 @@ class FilterCommand(Command):
         )
         filter_parser.add_argument("--name", help="Name to label output dataset.")
         filter_parser.add_argument(
+            "--unsorted",
+            action="store_true",
+            help="Pass this flag if index is not sorted.",
+        )
+        filter_parser.add_argument(
             "--batch-size",
             type=int,
             help="Batch size to load data. If not provided, load entire profiles.",
@@ -299,8 +304,25 @@ class FilterCommand(Command):
             with ProfileData(args.output, "w").create(M, res, args.name) as out:
                 if args.batch_size is not None:
                     for i in range(0, N, args.batch_size):
-                        out.write_profiles(*data[index[i : i + args.batch_size]])
+                        idxs = index[i : i + args.batch_size]
+                        if args.unsorted:
+                            sorter = np.argsort(idxs)
+                            unsorter = np.argsort(sorter)
+                            data_sorted = data[idxs[sorter]]
+                            data_unsorted = data_sorted[unsorter]
+                        else:
+                            data_unsorted = data[idxs]
+                        out.write_profiles(*data_unsorted)
                 else:
-                    out.write_profiles(*data[index])
+                    idxs = index
+                    if args.unsorted:
+                        # sort idx, get profiles and sort back
+                        sorter = np.argsort(idxs)
+                        unsorter = np.argsort(sorter)
+                        data_sorted = data[idxs[sorter]]
+                        data_unsorted = data_sorted[unsorter]
+                    else:
+                        data_unsorted = data[idxs]
+                    out.write_profiles(*data_unsorted)
 
         self.logger.info(f"Saved {out.path}")
