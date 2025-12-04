@@ -290,6 +290,8 @@ class FilterCommand(Command):
         )
 
     def run(self, args):
+        from operator import itemgetter
+
         from heavyedge.io import ProfileData
 
         self.logger.info(f"Writing {args.output}")
@@ -309,7 +311,7 @@ class FilterCommand(Command):
                             sorter = np.argsort(idxs)
                             unsorter = np.argsort(sorter)
                             data_sorted = data[idxs[sorter]]
-                            data_unsorted = data_sorted[unsorter]
+                            data_unsorted = map(itemgetter(*unsorter), data_sorted)
                         else:
                             data_unsorted = data[idxs]
                         out.write_profiles(*data_unsorted)
@@ -320,7 +322,7 @@ class FilterCommand(Command):
                         sorter = np.argsort(idxs)
                         unsorter = np.argsort(sorter)
                         data_sorted = data[idxs[sorter]]
-                        data_unsorted = data_sorted[unsorter]
+                        data_unsorted = map(itemgetter(*unsorter), data_sorted)
                     else:
                         data_unsorted = data[idxs]
                     out.write_profiles(*data_unsorted)
