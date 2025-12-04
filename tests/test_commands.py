@@ -2,6 +2,7 @@ import os
 import subprocess
 
 import numpy as np
+import pytest
 
 from heavyedge import ProfileData
 
@@ -154,3 +155,59 @@ def test_edge_command(tmp_prepdata_type2_path, tmp_path):
         check=True,
     )
     assert os.path.exists(padded_path)
+
+
+def test_filter_command(tmp_prepdata_type2_path, tmp_path):
+    sorted_idx = [1, 2, 3]
+    sorted_idx_path = tmp_path / "sorted.npy"
+    sorted_profiles_path = tmp_path / "sorted.h5"
+    np.save(sorted_idx_path, sorted_idx)
+    subprocess.run(
+        [
+            "heavyedge",
+            "filter",
+            tmp_prepdata_type2_path,
+            sorted_idx_path,
+            "-o",
+            sorted_profiles_path,
+        ],
+        capture_output=True,
+        check=True,
+    )
+
+    reversed_idx = list(reversed(sorted_idx))
+    reversed_idx_path = tmp_path / "reversed.npy"
+    reversed_profiles_path = tmp_path / "reversed.h5"
+    np.save(reversed_idx_path, reversed_idx)
+    with pytest.raises(subprocess.CalledProcessError):
+        subprocess.run(
+            [
+                "heavyedge",
+                "filter",
+                tmp_prepdata_type2_path,
+                reversed_idx_path,
+                "-o",
+                reversed_profiles_path,
+            ],
+            capture_output=True,
+            check=True,
+        )
+    subprocess.run(
+        [
+            "heavyedge",
+            "filter",
+            tmp_prepdata_type2_path,
+            reversed_idx_path,
+            "--unsorted",
+            "-o",
+            reversed_profiles_path,
+        ],
+        capture_output=True,
+        check=True,
+    )
+
+    with ProfileData(sorted_profiles_path) as sorted_file:
+        sorted_data = sorted_file[:]
+    with ProfileData(reversed_profiles_path) as reversed_file:
+        reversed_data = reversed_file[:]
+    assert all(np.all(sd == rvd[::-1]) for sd, rvd in zip(sorted_data, reversed_data))
