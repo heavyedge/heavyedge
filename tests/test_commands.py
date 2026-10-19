@@ -157,6 +157,74 @@ def test_edge_command(tmp_prepdata_type2_path, tmp_path):
     assert os.path.exists(padded_path)
 
 
+@pytest.mark.parametrize("batch_size", [None, 3])
+@pytest.mark.parametrize("width", [None, 1])
+def test_trim_command_updates_profile_lengths(tmp_path, batch_size, width):
+    input_path = tmp_path / "input.h5"
+    output_path = tmp_path / "trimmed.h5"
+    profiles = np.arange(48, dtype=float).reshape(8, 6)
+    lengths = np.array([2, 3, 4, 5, 2, 3, 4, 5])
+    names = [f"profile-{i}" for i in range(len(profiles))]
+
+    with ProfileData(input_path, "w").create(6, 1, "test") as data:
+        data.write_profiles(profiles, lengths, names)
+
+    command = ["heavyedge", "trim", input_path, "-o", output_path]
+    if batch_size is not None:
+        command.extend(["--batch-size", str(batch_size)])
+    if width is not None:
+        command.extend(["--width", str(width)])
+    subprocess.run(command, capture_output=True, check=True)
+
+    trimmed_width = 2 if width is None else width
+    expected = np.array(
+        [
+            profile[length - trimmed_width : length + 1]
+            for profile, length in zip(profiles, lengths)
+        ]
+    )
+    with ProfileData(output_path) as data:
+        trimmed, trimmed_lengths, trimmed_names = data[:]
+
+    np.testing.assert_array_equal(trimmed, expected)
+    np.testing.assert_array_equal(trimmed_lengths, np.full_like(lengths, trimmed_width))
+    np.testing.assert_array_equal(trimmed_names, names)
+
+
+@pytest.mark.parametrize("batch_size", [None, 6])
+@pytest.mark.parametrize("width", [None, 7])
+def test_pad_command_updates_profile_lengths(tmp_path, batch_size, width):
+    input_path = tmp_path / "input.h5"
+    output_path = tmp_path / "padded.h5"
+    profiles = np.arange(48, dtype=float).reshape(8, 6)
+    lengths = np.array([2, 3, 4, 5, 2, 3, 4, 5])
+    names = [f"profile-{i}" for i in range(len(profiles))]
+
+    with ProfileData(input_path, "w").create(6, 1, "test") as data:
+        data.write_profiles(profiles, lengths, names)
+
+    command = ["heavyedge", "pad", input_path, "-o", output_path]
+    if batch_size is not None:
+        command.extend(["--batch-size", str(batch_size)])
+    if width is not None:
+        command.extend(["--width", str(width)])
+    subprocess.run(command, capture_output=True, check=True)
+
+    padded_width = 5 if width is None else width
+    expected = np.array(
+        [
+            np.pad(profile[: length + 1], (padded_width - length, 0), mode="edge")
+            for profile, length in zip(profiles, lengths)
+        ]
+    )
+    with ProfileData(output_path) as data:
+        padded, padded_lengths, padded_names = data[:]
+
+    np.testing.assert_array_equal(padded, expected)
+    np.testing.assert_array_equal(padded_lengths, np.full_like(lengths, padded_width))
+    np.testing.assert_array_equal(padded_names, names)
+
+
 def test_filter_command(tmp_prepdata_type2_path, tmp_path):
     sorted_idx = [1, 2, 3]
     sorted_idx_path = tmp_path / "sorted.npy"

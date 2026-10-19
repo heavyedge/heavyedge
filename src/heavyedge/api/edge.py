@@ -137,9 +137,9 @@ def trim(f, width1, width2, batch_size=None, logger=lambda x: None):
     trimmed : (batch_size, width) array
         Trimmed edge profile.
     Ls : (batch_size,) array
-        Lengths of the scaled profiles.
+        Lengths of the trimmed profiles (the new contact point at width1).
     names : (batch_size,) array
-        Names of the scaled profiles.
+        Names of the trimmed profiles.
 
     Examples
     --------
@@ -155,17 +155,15 @@ def trim(f, width1, width2, batch_size=None, logger=lambda x: None):
     ... plt.plot(Ys_trim.T)
     """
     N, _ = f.shape()
-    Ls = f._file["len"][:]
-
     if batch_size is None:
         Ys, Ls, names = f[:]
         logger(f"{N}/{N}")
-        yield _trim(Ys, Ls, width1, width2), Ls, names
+        yield _trim(Ys, Ls, width1, width2), np.full_like(Ls, width1), names
     else:
         for i in range(0, N, batch_size):
             Ys, Ls, names = f[i : i + batch_size]
             logger(f"{i}/{N}")
-            yield _trim(Ys, Ls, width1, width2), Ls, names
+            yield _trim(Ys, Ls, width1, width2), np.full_like(Ls, width1), names
 
 
 def _trim(Ys, Ls, w1, w2):
@@ -198,7 +196,7 @@ def pad(f, width1, width2, batch_size=None, logger=lambda x: None):
     padded : (batch_size, width) array
         Padded edge profile.
     Ls : (batch_size,) array
-        Lengths of the padded profiles.
+        Lengths of the padded profiles (the new contact point at width1).
     names : (batch_size,) array
         Names of the padded profiles.
 
@@ -216,24 +214,22 @@ def pad(f, width1, width2, batch_size=None, logger=lambda x: None):
     ... plt.plot(Ys_pad.T)
     """
     N, _ = f.shape()
-    Ls = f._file["len"][:]
-
     if batch_size is None:
         Ys, Ls, names = f[:]
         logger(f"{N}/{N}")
-        yield _pad(Ys, Ls, width1, width2), Ls, names
+        yield _pad(Ys, Ls, width1, width2), np.full_like(Ls, width1), names
     else:
         for i in range(0, N, batch_size):
             Ys, Ls, names = f[i : i + batch_size]
             logger(f"{i}/{N}")
-            yield _pad(Ys, Ls, width1, width2), Ls, names
+            yield _pad(Ys, Ls, width1, width2), np.full_like(Ls, width1), names
 
 
 def _pad(Ys, Ls, w1, w2):
     N, M = Ys.shape
     ret = np.empty((N, w1 + w2), dtype=Ys.dtype)
 
-    ret[:w1] = Ys[:, :1]
+    ret[:, :w1] = Ys[:, :1]
     ret_mask = np.arange(w1 + w2)[None, :] >= (w1 - Ls)[:, None]
     Ys_mask = np.arange(M)[None, :] < (w2 + Ls)[:, None]
     ret[ret_mask] = Ys[Ys_mask]
