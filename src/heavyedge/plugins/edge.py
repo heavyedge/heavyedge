@@ -82,7 +82,7 @@ class TrimCommand(Command):
         trim.add_config_argument(
             "--width",
             type=float,
-            help="Edge width. If not passed, length of the shortest profile.",
+            help="Width to trim from. If not passed, length of the shortest profile.",
         )
         trim.add_argument(
             "--batch-size",
@@ -141,7 +141,7 @@ class PadCommand(Command):
         pad.add_config_argument(
             "--width",
             type=float,
-            help="Edge width. If not passed, length of the shortest profile.",
+            help="Width to pad to. If not passed, length of the longest profile.",
         )
         pad.add_argument(
             "--batch-size",
